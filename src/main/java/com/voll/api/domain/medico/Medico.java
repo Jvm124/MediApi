@@ -4,9 +4,8 @@ import com.voll.api.domain.direccion.Direccion;
 import jakarta.persistence.*;
 import jakarta.validation.Valid;
 import lombok.*;
-
-@Entity(name = "Medico")
 @Table(name = "medicos")
+@Entity(name = "Medico")
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
