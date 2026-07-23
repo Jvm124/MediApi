@@ -12,6 +12,7 @@ public record DatosRegistroPaciente(
         @NotBlank @Email String email,
         @NotBlank @Pattern(regexp = "9\\d{8}") String telefono,
         @NotBlank @Pattern(regexp = "\\d{8}") String documento,
-        @NotNull @Valid DatosDireccion direccion
+        @NotNull @Valid DatosDireccion direccion,
+        @NotBlank String contrasenia
 ) {
 }

@@ -20,17 +20,17 @@ public class AutenticacionController {
     @Autowired
     private TokenService tokenService;
 
-
     @Autowired
     private AuthenticationManager manager;
 
     @PostMapping
     public ResponseEntity iniciarSesion(@RequestBody @Valid DatosAutenticacion datos){
-        var authenticationtoken = new UsernamePasswordAuthenticationToken(datos.login(),datos.contrasenia());
+        var authenticationtoken = new UsernamePasswordAuthenticationToken(datos.correo(), datos.contrasenia());
         var autenticacion = manager.authenticate(authenticationtoken);
 
-        var tokenJWT = tokenService.generateToken((Usuario) autenticacion.getPrincipal());
+        var usuario = (Usuario) autenticacion.getPrincipal();
+        var tokenJWT = tokenService.generateToken(usuario);
 
-        return ResponseEntity.ok(new DatosTokenJWT(tokenJWT));
+        return ResponseEntity.ok(new DatosTokenJWT(tokenJWT, usuario.getRol().name()));
     }
 }

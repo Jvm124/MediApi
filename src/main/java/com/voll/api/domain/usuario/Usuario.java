@@ -1,6 +1,11 @@
 package com.voll.api.domain.usuario;
 
+import com.voll.api.domain.medico.Medico;
+import com.voll.api.domain.paciente.Paciente;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -23,12 +28,35 @@ public class Usuario implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String login;
+    private String correo;
     private String contrasenia;
+
+    @Enumerated(EnumType.STRING)
+    private Rol rol;
+
+    @OneToOne
+    @JoinColumn(name = "paciente_id")
+    private Paciente paciente;
+
+    @OneToOne
+    @JoinColumn(name = "medico_id")
+    private Medico medico;
+    public void asignarMedico(Medico medico) {
+        this.medico = medico;
+    }
+    public void asignarPaciente(Paciente paciente) {
+        this.paciente = paciente;
+    }
+    public Usuario(String correo, String contrasenia, Rol rol) {
+            this.correo = correo;
+            this.contrasenia = contrasenia;
+            this.rol = rol;
+    }
+
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_USER"));
+        return List.of(new SimpleGrantedAuthority("ROLE_" + this.rol.name()));
     }
 
     @Override
@@ -38,7 +66,7 @@ public class Usuario implements UserDetails {
 
     @Override
     public String getUsername() {
-        return login;
+        return correo;
     }
 
     @Override
@@ -60,4 +88,6 @@ public class Usuario implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
+
+
 }

@@ -1,8 +1,9 @@
 package com.voll.api.domain.usuario;
 
+import jakarta.validation.constraints.NotBlank;
+
 public record DatosAutenticacion(
-        Long id,
-        String login,
-        String contrasenia
+        @NotBlank String correo,
+        @NotBlank String contrasenia
 ) {
 }

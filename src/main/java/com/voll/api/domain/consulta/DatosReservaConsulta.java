@@ -11,6 +11,5 @@ public record DatosReservaConsulta(
         @NotNull Long idPaciente,
         @NotNull @Future LocalDateTime fecha,
         Especialidad especialidad
-        ) {
-
-}
+        )
+{}
