@@ -16,7 +16,9 @@ public record DatosRegistroMedico(
 
         @NotNull Especialidad especialidad,
 
-        @NotNull @Valid DatosDireccion direccion
+        @NotNull @Valid DatosDireccion direccion,
+
+        @NotBlank String contrasenia
 ) {
 
 }

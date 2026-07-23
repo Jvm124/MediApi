@@ -3,7 +3,7 @@ create table consultas(
     medico_id bigint not null ,
     paciente_id bigint not null,
     fecha datetime not null,
-
+    motivo VARCHAR(100),
 
     primary key(id),
     constraint fk_consultas_medico_id foreign key(medico_id) references medicos(id),
