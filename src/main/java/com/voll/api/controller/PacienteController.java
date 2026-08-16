@@ -1,10 +1,7 @@
 package com.voll.api.controller;
 
-import com.voll.api.domain.ValidacionException;
 import com.voll.api.domain.paciente.*;
-import com.voll.api.domain.usuario.Rol;
 import com.voll.api.domain.usuario.Usuario;
-import com.voll.api.domain.usuario.UsuarioRepository;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,8 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -22,62 +18,50 @@ import org.springframework.web.util.UriComponentsBuilder;
 @RequestMapping("/pacientes")
 @SecurityRequirement(name = "bearer-key")
 public class PacienteController {
-    @Autowired
-    private PacienteRepository pacienteRepository;
 
     @Autowired
-    private UsuarioRepository usuarioRepository;
+    private PacienteService pacienteService;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-    @Transactional
+    // Auto-registro público (crea paciente + cuenta). Debe estar permitido sin token
+    // en tu SecurityFilterChain.
     @PostMapping
-    public ResponseEntity registrarPaciente(@RequestBody @Valid DatosRegistroPaciente datos, UriComponentsBuilder uriComponentsBuilder) {
+    public ResponseEntity<DatosDetallePaciente> registrarPaciente(@RequestBody @Valid DatosRegistroPaciente datos, UriComponentsBuilder uriBuilder) {
+        var detalle = pacienteService.registrar(datos);
+        var uri = uriBuilder.path("/pacientes/{id}").buildAndExpand(detalle.id()).toUri();
+        return ResponseEntity.created(uri).body(detalle);
+    }
 
-        if (usuarioRepository.existsByCorreo(datos.email())) {
-            throw new ValidacionException("Ya existe un usuario con ese correo de acceso");
-        }
-        var paciente= new Paciente(datos);
-        pacienteRepository.save(paciente);
-
-        var contraseniaEncriptada = passwordEncoder.encode(datos.contrasenia());
-        var usuario = new Usuario(datos.email(), contraseniaEncriptada, Rol.PACIENTE);
-        usuario.asignarPaciente(paciente);
-        usuarioRepository.save(usuario);
-
-        var uri = uriComponentsBuilder.path("/pacientes/{id}").buildAndExpand(paciente.getId()).toUri();
-        return ResponseEntity.created(uri).body(new DatosDetallePaciente(paciente));
+    // Alta por mostrador (staff): crea el paciente SIN cuenta web.
+    @PostMapping("/registro-staff")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'RECEPCIONISTA')")
+    public ResponseEntity<DatosDetallePaciente> registrarPacientePorStaff(@RequestBody @Valid DatosRegistroPacientePorStaff datos, UriComponentsBuilder uriBuilder) {
+        var detalle = pacienteService.registrarPorStaff(datos);
+        var uri = uriBuilder.path("/pacientes/{id}").buildAndExpand(detalle.id()).toUri();
+        return ResponseEntity.created(uri).body(detalle);
     }
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'RECEPCIONISTA')")
-    public ResponseEntity<Page<DatosListaPaciente>> listarPacientes(@PageableDefault(size=10, sort={"nombre"}) Pageable paginacion) {
-        var page = pacienteRepository.findAllByActivoTrue(paginacion)
-                .map(DatosListaPaciente::new);
-        return ResponseEntity.ok(page);
-    }
-    @Transactional
-    @PutMapping
-    @PreAuthorize("hasAnyRole('PACIENTE')")
-    public ResponseEntity actualizarPaciente(@RequestBody @Valid DatosActualizarPaciente datos) {
-        var paciente = pacienteRepository.getReferenceById(datos.id());
-        paciente.actualizarInformacionesPaciente(datos);
-        return ResponseEntity.ok(new DatosDetallePaciente(paciente));
-    }
-
-    @Transactional
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR','PACIENTE')")
-    public ResponseEntity eliminarPaciente(@PathVariable Long id) {
-        var paciente = pacienteRepository.getReferenceById(id);
-        paciente.eliminacionLogicaPaciente();
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<Page<DatosListaPaciente>> listarPacientes(@PageableDefault(size = 10, sort = {"nombre"}) Pageable paginacion) {
+        return ResponseEntity.ok(pacienteService.listar(paginacion));
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMINISTRADOR')")
-    public ResponseEntity listarPacientesPorId(@PathVariable Long id) {
-        var paciente =pacienteRepository.getReferenceById(id);
-        return ResponseEntity.ok(new DatosDetallePaciente(paciente));
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'RECEPCIONISTA')")
+    public ResponseEntity<DatosDetallePaciente> detallarPaciente(@PathVariable Long id) {
+        return ResponseEntity.ok(pacienteService.detallar(id));
+    }
+
+    @PutMapping
+    @PreAuthorize("hasRole('PACIENTE')")
+    public ResponseEntity<DatosDetallePaciente> actualizarPaciente(@RequestBody @Valid DatosActualizarPaciente datos, @AuthenticationPrincipal Usuario usuarioLogueado) {
+        return ResponseEntity.ok(pacienteService.actualizar(datos, usuarioLogueado));
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'PACIENTE')")
+    public ResponseEntity<Void> eliminarPaciente(@PathVariable Long id, @AuthenticationPrincipal Usuario usuarioLogueado) {
+        pacienteService.eliminar(id, usuarioLogueado);
+        return ResponseEntity.noContent().build();
     }
 }

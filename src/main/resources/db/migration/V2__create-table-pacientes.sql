@@ -1,18 +1,17 @@
-create table pacientes(
-    id bigint not null auto_increment,
-    nombre varchar(100) not null,
-    activo tinyInt,
-    email varchar(100) not null unique,
-    telefono varchar(20),
-    documento varchar(12) not null unique,
-    calle varchar(100) not null,
-    numero varchar(20),
-    complemento varchar(100),
-    barrio varchar(100) not null,
-    ciudad varchar(100) not null,
-    estado char(100) not null,
-    codigo_postal varchar(12) not null,
+CREATE TABLE pacientes(
+                          id BIGINT NOT NULL AUTO_INCREMENT,
+                          nombre VARCHAR(100) NOT NULL,
+                          activo TINYINT(1),
+                          email VARCHAR(100) NOT NULL UNIQUE,
+                          telefono VARCHAR(20),
+                          documento VARCHAR(12) NOT NULL UNIQUE,
+                          calle VARCHAR(100) NOT NULL,
+                          numero VARCHAR(20),
+                          complemento VARCHAR(100),
+                          barrio VARCHAR(100) NOT NULL,
+                          ciudad VARCHAR(100) NOT NULL,
+                          estado VARCHAR(100) NOT NULL,
+                          codigo_postal VARCHAR(12) NOT NULL,
 
-    primary key(id)
-
+                          PRIMARY KEY(id)
 );

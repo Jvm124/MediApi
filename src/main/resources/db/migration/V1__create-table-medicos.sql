@@ -1,19 +1,18 @@
-create table medicos(
-    id bigint not null auto_increment,
-    nombre varchar(100) not null,
-    email varchar(100) not null unique,
-    documento varchar(12) not null unique,
-    telefono varchar(20) not null,
-    especialidad varchar(100) not null,
-    calle varchar(100) not null,
-    barrio varchar(100) not null,
-    codigo_postal varchar(12) not null,
-    complemento varchar(100),
-    numero varchar(20),
-    activo tinyInt,
-    estado char(100) not null,
-    ciudad varchar(100) not null,
+CREATE TABLE medicos(
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    nombre VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    documento VARCHAR(12) NOT NULL UNIQUE,
+    telefono VARCHAR(20) NOT NULL,
+    especialidad VARCHAR(100) NOT NULL,
+    calle VARCHAR(100) NOT NULL,
+    barrio VARCHAR(100) NOT NULL,
+    codigo_postal VARCHAR(12) NOT NULL,
+    complemento VARCHAR(100),
+    numero VARCHAR(20),
+    activo TINYINT(1),
+    estado VARCHAR(100) NOT NULL,
+    ciudad VARCHAR(100) NOT NULL,
 
-    primary key(id)
-
+    PRIMARY KEY(id)
 );
