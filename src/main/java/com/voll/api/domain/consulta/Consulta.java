@@ -23,15 +23,17 @@ public class Consulta {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="medico_id")
+    @JoinColumn(name = "medico_id")
     private Medico idMedico;
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="paciente_id")
+    @JoinColumn(name = "paciente_id")
     private Paciente idPaciente;
+
     private LocalDateTime fecha;
+
     @Enumerated(EnumType.STRING)
     private MotivoCancelamiento motivo;
-
 
     @Enumerated(EnumType.STRING)
     private EstadoConsulta estado;
@@ -44,10 +46,18 @@ public class Consulta {
         this.motivo = null;
     }
 
+    // PROGRAMADA -> ATENDIDA. Cierra la consulta: el médico la dio por terminada.
+    public void atender() {
+        if (this.estado != EstadoConsulta.PROGRAMADA) {
+            throw new ValidacionException("Solo se puede atender una consulta programada");
+        }
+        this.estado = EstadoConsulta.ATENDIDA;
+    }
 
-    public void cancelar (MotivoCancelamiento motivo) {
-        if(this.estado == EstadoConsulta.CANCELADA) {
-            throw new ValidacionException("La consulta ya fue cancelada");
+    // PROGRAMADA -> CANCELADA. Ya no se puede cancelar una atendida ni una ya cancelada.
+    public void cancelar(MotivoCancelamiento motivo) {
+        if (this.estado != EstadoConsulta.PROGRAMADA) {
+            throw new ValidacionException("Solo se puede cancelar una consulta programada");
         }
         this.estado = EstadoConsulta.CANCELADA;
         this.motivo = motivo;

@@ -3,9 +3,6 @@ package com.voll.api.domain.usuario;
 import com.voll.api.domain.medico.Medico;
 import com.voll.api.domain.paciente.Paciente;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -41,18 +38,27 @@ public class Usuario implements UserDetails {
     @OneToOne
     @JoinColumn(name = "medico_id")
     private Medico medico;
+
+    private Boolean activo;
+
+    public Usuario(String correo, String contrasenia, Rol rol) {
+        this.correo = correo;
+        this.contrasenia = contrasenia;
+        this.rol = rol;
+        this.activo = true;
+    }
+
     public void asignarMedico(Medico medico) {
         this.medico = medico;
     }
+
     public void asignarPaciente(Paciente paciente) {
         this.paciente = paciente;
     }
-    public Usuario(String correo, String contrasenia, Rol rol) {
-            this.correo = correo;
-            this.contrasenia = contrasenia;
-            this.rol = rol;
-    }
 
+    public void desactivar() {
+        this.activo = false;
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -86,8 +92,17 @@ public class Usuario implements UserDetails {
 
     @Override
     public boolean isEnabled() {
+
+        if (Boolean.FALSE.equals(this.activo)) {
+            return false;
+        }
+
+        if (medico != null) {
+            return Boolean.TRUE.equals(medico.getActivo());
+        }
+        if (paciente != null) {
+            return Boolean.TRUE.equals(paciente.getActivo());
+        }
         return true;
     }
-
-
 }

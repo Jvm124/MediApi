@@ -1,6 +1,5 @@
 package com.voll.api.domain.paciente;
 
-
 import jakarta.validation.constraints.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,4 +12,8 @@ public interface PacienteRepository extends JpaRepository<Paciente, Long> {
 
     @Query("select p.activo from Paciente p where p.id = :idPaciente")
     boolean findActivoById(@NotNull Long idPaciente);
+
+    boolean existsByDocumento(String documento);
+
+    boolean existsByEmail(String email);
 }
