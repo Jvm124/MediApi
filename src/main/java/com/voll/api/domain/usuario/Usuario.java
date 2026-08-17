@@ -66,13 +66,13 @@ public class Usuario implements UserDetails {
     }
     public void reactivar() {
         if (this.estado != EstadoUsuario.SUSPENDIDO && this.estado != EstadoUsuario.BAJA) {
-            throw new ValidacionException("Solo se puede reactivar a un usuario suspendido");
+            throw new ValidacionException("Solo se puede reactivar a un usuario suspendido o dado de baja");
         }
         this.estado = EstadoUsuario.ACTIVO;
     }
     public void darDeBaja() {
         if (this.estado != EstadoUsuario.ACTIVO && this.estado != EstadoUsuario.SUSPENDIDO) {
-            throw new ValidacionException("Solo se puede dar de baja a un usuario suspendido activo o suspendido");
+            throw new ValidacionException("Solo se puede dar de baja a un usuario activo o suspendido");
         }
         this.estado = EstadoUsuario.BAJA;
     }
