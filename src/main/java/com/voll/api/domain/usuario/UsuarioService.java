@@ -31,17 +31,39 @@ public class UsuarioService {
         usuarioRepository.save(usuario);
         return new DatosDetalleUsuario(usuario);
     }
-
     @Transactional
-    public void desactivar(Long id, Usuario adminLogueado) {
+    public void suspender(Long id, Usuario adminLogueado) {
 
         if (adminLogueado.getId().equals(id)) {
-            throw new ValidacionException("No puedes desactivar tu propia cuenta");
+            throw new ValidacionException("No puedes suspender tu propia cuenta");
         }
         var usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new ValidacionException("No existe un usuario con el id informado"));
-        usuario.desactivar();
+        usuario.suspender();
     }
+    @Transactional
+    public void reactivar(Long id, Usuario adminLogueado) {
+
+        if (adminLogueado.getId().equals(id)) {
+            throw new ValidacionException("No puedes reactivar tu propia cuenta");
+        }
+        var usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new ValidacionException("No existe un usuario con el id informado"));
+        usuario.reactivar();
+    }
+
+    @Transactional
+    public void darDeBaja(Long id, Usuario adminLogueado) {
+
+        if (adminLogueado.getId().equals(id)) {
+            throw new ValidacionException("No puedes dar de baja tu propia cuenta");
+        }
+        var usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new ValidacionException("No existe un usuario con el id informado"));
+        usuario.darDeBaja();
+    }
+
+
 
     public Page<DatosListaUsuario> listarUsuarios(Pageable paginacion) {
         return usuarioRepository.findAll(paginacion).map(DatosListaUsuario::new);
