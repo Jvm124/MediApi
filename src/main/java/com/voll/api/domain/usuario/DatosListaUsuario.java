@@ -4,9 +4,9 @@ public record DatosListaUsuario(
         Long id,
         String correo,
         Rol rol,
-        Boolean activo
+        EstadoUsuario estado
 ) {
     public DatosListaUsuario(Usuario usuario) {
-        this(usuario.getId(), usuario.getCorreo(), usuario.getRol(), usuario.getActivo());
+        this(usuario.getId(), usuario.getCorreo(), usuario.getRol(), usuario.getEstado());
     }
 }

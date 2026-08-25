@@ -30,15 +30,26 @@ public class UsuarioController {
     public ResponseEntity<Page<DatosListaUsuario>> listarUsuarios(@PageableDefault(size = 10, sort = {"correo"}) Pageable paginacion) {
         return ResponseEntity.ok(usuarioService.listarUsuarios(paginacion));
     }
-
-    @DeleteMapping("/{id}")
+    @PatchMapping("/{id}/suspender")
     @PreAuthorize("hasRole('ADMINISTRADOR')")
-    public ResponseEntity<Void> desactivar(
-            @PathVariable Long id,
-            @AuthenticationPrincipal Usuario adminLogueado) {
-        usuarioService.desactivar(id, adminLogueado);
+    public ResponseEntity<Void> suspender(@PathVariable Long id, @AuthenticationPrincipal Usuario adminLogueado) {
+        usuarioService.suspender(id, adminLogueado);
         return ResponseEntity.noContent().build();
     }
+
+    @PatchMapping("/{id}/reactivar")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<Void> reactivar(@PathVariable Long id, @AuthenticationPrincipal Usuario adminLogueado) {
+        usuarioService.reactivar(id, adminLogueado);
+        return ResponseEntity.noContent().build();
+    }
+    @PatchMapping("/{id}/baja")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<Void> darDeBaja(@PathVariable Long id, @AuthenticationPrincipal Usuario adminLogueado) {
+        usuarioService.darDeBaja(id, adminLogueado);
+        return ResponseEntity.noContent().build();
+    }
+
 
     @GetMapping("/me")
     public ResponseEntity<DatosUsuarioActual> datosUsuarioActual(@AuthenticationPrincipal Usuario usuario) {

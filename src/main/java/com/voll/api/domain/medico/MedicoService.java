@@ -95,8 +95,8 @@ public class MedicoService {
         var medico = buscarActivo(id);
         medico.eliminacionLogicaMedico();
 
-        usuarioRepository.findByMedicoId(id).ifPresent(Usuario::desactivar);
-        //misma funcionalidad:  usuarioRepository.findByMedicoId(id).ifPresent(usuario -> usuario.desactivar());
+        usuarioRepository.findByMedicoId(id).ifPresent(Usuario::darDeBaja);
+        //misma funcionalidad:  usuarioRepository.findByMedicoId(id).ifPresent(usuario -> usuario.darDeBaja());
     }
 
     // Aqui listo los Medicos Disponibles, esto se usa cuando el paciente esta haciendo su reserva,
