@@ -1,6 +1,7 @@
 package com.voll.api.domain.medico;
 
 import com.voll.api.domain.direccion.DatosDireccion;
+import com.voll.api.domain.usuario.ContraseniaSegura;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 
@@ -18,7 +19,7 @@ public record DatosRegistroMedico(
 
         @NotNull @Valid DatosDireccion direccion,
 
-        @NotBlank String contrasenia
+        @ContraseniaSegura String contrasenia
 ) {
 
 }

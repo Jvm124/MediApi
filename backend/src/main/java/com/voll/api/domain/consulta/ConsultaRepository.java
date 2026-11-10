@@ -10,7 +10,9 @@ import java.util.List;
 
 public interface ConsultaRepository extends JpaRepository<Consulta, Long> {
 
-    boolean existsByIdMedicoIdAndFecha(Long idMedico, LocalDateTime fecha);
+    // Solo cuenta las consultas con ese estado. Al reservar se pasa PROGRAMADA, porque una consulta
+    // cancelada ya no ocupa el horario del médico (BUG-01).
+    boolean existsByIdMedicoIdAndFechaAndEstado(Long idMedico, LocalDateTime fecha, EstadoConsulta estado);
 
     @Query("""
             SELECT COUNT(c) > 0 FROM Consulta c

@@ -157,6 +157,7 @@ public class ReservaDeConsultas {
         if (datos.especialidad() == null) {
             throw new ValidacionException("Es necesario elegir una especialidad cuando no se elige un médico");
         }
-        return medicoRepository.elegirMedicoAleatorioDisponibleEnLaFecha(datos.especialidad(), datos.fecha());
+        return medicoRepository.elegirMedicoAleatorioDisponibleEnLaFecha(
+                datos.especialidad(), datos.fecha(), EstadoConsulta.PROGRAMADA);
     }
 }

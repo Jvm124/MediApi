@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { contraseniaSegura } from '@/schemas/contraseniaSchema';
 
 const direccionSchema = z.object({
     calle: z.string().min(1, 'Requerido'),
@@ -18,7 +19,7 @@ export const registrarMedicoSchema = z.object({
     especialidad: z.enum(['ORTOPEDIA', 'CARDIOLOGIA', 'GINECOLOGIA', 'DERMATOLOGIA'], {
         error: 'Selecciona especialidad',
     }),
-    contrasenia: z.string().min(6, 'Mínimo 6 caracteres'),
+    contrasenia: contraseniaSegura,
     direccion: direccionSchema,
 });
 

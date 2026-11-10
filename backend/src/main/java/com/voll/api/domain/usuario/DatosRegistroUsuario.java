@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotNull;
 
 public record DatosRegistroUsuario(
         @NotBlank @Email String correo,
-        @NotBlank String contrasenia,
+        @ContraseniaSegura String contrasenia,
         @NotNull Rol rol
 ) {
 }

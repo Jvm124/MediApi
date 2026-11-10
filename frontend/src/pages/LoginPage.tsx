@@ -8,6 +8,7 @@ import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import { useAuth } from '@/hooks/useAuth';
 import { loginSchema, type LoginFormData } from '@/schemas/loginSchema';
+import { getErrorMessage } from '@/utils/getErrorMessage';
 
 // Mapa: a qué ruta va cada rol después de iniciar sesión.
 // Si mañana agregas un rol nuevo, solo lo añades aquí.
@@ -51,8 +52,8 @@ const LoginPage = () => {
             // mapa, lo mandamos al login de nuevo por seguridad.
             const destino = RUTA_POR_ROL[usuario.rol] ?? '/login';
             navigate(destino);
-        } catch (err: any) {
-            setServerError(err?.response?.data?.message || 'Credenciales inválidas');
+        } catch (err) {
+            setServerError(getErrorMessage(err, 'Credenciales inválidas'));
             // recaptchaRef.current?.reset();
             // setRecaptchaToken(null);
         }
