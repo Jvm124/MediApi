@@ -22,6 +22,7 @@ Aquí queda registrado qué decidimos, qué falló y cómo se arregló, y qué i
 
 - [0001 — Monorepo para backend y frontend](adr/0001-monorepo.md)
 - [0002 — Crear el administrador inicial con variables de entorno](adr/0002-admin-inicial-por-variables-de-entorno.md)
+- [0003 — Leer las credenciales locales del backend desde `backend/.env`](adr/0003-credenciales-locales-en-env.md)
 
 ### Problemas resueltos
 

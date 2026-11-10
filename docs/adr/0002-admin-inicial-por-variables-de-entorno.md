@@ -29,5 +29,5 @@ Hace falta al menos un administrador para dar de alta a médicos y personal, per
 
 ## Consecuencias
 
-- Para tener un admin en local hay que definir `ADMIN_EMAIL` y `ADMIN_PASSWORD` en IntelliJ. Se puede volver a usar `admin@voll.med`: lo que cambia es la contraseña.
+- Para tener un admin en local hay que definir `ADMIN_EMAIL` y `ADMIN_PASSWORD` en IntelliJ. Se puede volver a usar `admin@voll.med`: lo que cambia es la contraseña. Desde el [ADR 0003](0003-credenciales-locales-en-env.md) también se pueden poner en `backend/.env`.
 - **Ojo con CAL-04:** `V5` inserta en `vollmed_api.usuarios`, con el nombre de la base escrito a mano. Si se migra otra base, por ejemplo `vollmed_api_test`, `V5` puede volver a insertar el admin publicado en `vollmed_api`, donde `V7` ya no se vuelve a ejecutar. Hay que corregir `V5` antes de migrar otra base, a más tardar al empezar las pruebas con base de datos (fase 3).
