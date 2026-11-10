@@ -150,7 +150,7 @@ Una rama y un PR por fase. Cada commit y cada PR, con tu autorización.
 ### Fase 1 — `fix/seguridad-critica`
 
 - [x] SEC-01: el admin inicial se crea con `ADMIN_EMAIL` y `ADMIN_PASSWORD`, `V7` borra al admin publicado y se eliminó `GenerarHashTest`. Ver el [ADR 0002](../adr/0002-admin-inicial-por-variables-de-entorno.md).
-- [ ] SEC-02 y SEC-03: manejo del token.
+- [x] SEC-02 y SEC-03: con un token vencido o alterado, o de un usuario suspendido, dado de baja o borrado, se responde 401, y el frontend cierra la sesión sin cambios. Antes de corregirlo, `SeguridadDelTokenTest` confirmó el análisis: sin token se respondía 403, un usuario suspendido entraba y un token vencido o un usuario borrado hacían fallar el filtro. Un login con credenciales incorrectas también pasa de 403 a 401; los mensajes claros llegan con BUG-03.
 - [ ] SEC-06: dependencias con vulnerabilidades.
 - [ ] BUG-08: `.env.example` del frontend.
 

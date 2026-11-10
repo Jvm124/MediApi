@@ -13,6 +13,12 @@ public class AutenticacionService implements UserDetailsService{
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return usuarioRepository.findByCorreo(username);
+        var usuario = usuarioRepository.findByCorreo(username);
+        if (usuario == null) {
+            // El contrato de Spring Security pide lanzar esta excepción, nunca devolver null.
+            // Spring la convierte en "credenciales inválidas", igual que una contraseña incorrecta.
+            throw new UsernameNotFoundException("No existe un usuario con ese correo");
+        }
+        return usuario;
     }
 }
