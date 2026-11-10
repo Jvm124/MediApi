@@ -10,7 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@hookform/resolvers": "^5.2.2",
+    "@hookform/resolvers": "^7.0.3",
     "axios": "^1.16.0",
     "dompurify": "^3.4.2",
     "lucide-react": "^1.70.0",
