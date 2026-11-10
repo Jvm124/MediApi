@@ -15,8 +15,12 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.TimeZone;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -25,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Prueba la cadena de seguridad real (SecurityConfigurations, SecurityFilter y TokenService)
  * contra una ruta protegida de prueba. Solo se simula la base de datos (UsuarioRepository).
- * Cubre SEC-02 y SEC-03 de docs/revisiones/0001-revision-inicial.md.
+ * Cubre SEC-02 y SEC-03 de docs/revisiones/0001-revision-inicial.md, y la duración del token de SEC-07.
  */
 @WebMvcTest(controllers = SeguridadDelTokenTest.ControladorDePrueba.class,
         properties = "api.security.token.secret=" + SeguridadDelTokenTest.SECRETO)
@@ -110,5 +114,25 @@ class SeguridadDelTokenTest {
         mvc.perform(get(RUTA).header("Authorization", "Bearer " + tokenService.generateToken(usuario)))
                 .andExpect(status().isOk())
                 .andExpect(content().string("ok"));
+    }
+
+    @Test
+    @DisplayName("El token vence 2 horas después de crearse, aunque el servidor tenga hora UTC")
+    void elTokenVenceEnDosHorasAunqueElServidorTengaHoraUtc() {
+        var zonaDelEquipo = TimeZone.getDefault();
+        // Como el CI de GitHub o muchos servidores de la nube.
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+        try {
+            var antes = Instant.now();
+            var token = tokenService.generateToken(new Usuario(CORREO, "hash", Rol.ADMINISTRADOR));
+            var despues = Instant.now();
+
+            // El token guarda el vencimiento en segundos enteros; por eso se recorta "antes".
+            assertThat(JWT.decode(token).getExpiresAtAsInstant())
+                    .isBetween(antes.plus(Duration.ofHours(2)).truncatedTo(ChronoUnit.SECONDS),
+                            despues.plus(Duration.ofHours(2)));
+        } finally {
+            TimeZone.setDefault(zonaDelEquipo);
+        }
     }
 }

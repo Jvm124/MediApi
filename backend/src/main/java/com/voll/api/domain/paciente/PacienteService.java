@@ -4,7 +4,7 @@ import com.voll.api.domain.ValidacionException;
 import com.voll.api.domain.usuario.Rol;
 import com.voll.api.domain.usuario.Usuario;
 import com.voll.api.domain.usuario.UsuarioRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -12,16 +12,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class PacienteService {
 
-    @Autowired
-    private PacienteRepository pacienteRepository;
-
-    @Autowired
-    private UsuarioRepository usuarioRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final PacienteRepository pacienteRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final PasswordEncoder passwordEncoder;
 
     // 1) Auto-registro web: crea Paciente + Usuario (cuenta de acceso).
     @Transactional

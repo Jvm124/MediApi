@@ -7,19 +7,17 @@ import com.voll.api.domain.consulta.EstadoConsulta;
 import com.voll.api.domain.medico.Especialidad;
 import com.voll.api.domain.medico.Medico;
 import com.voll.api.domain.medico.MedicoRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalTime;
 
 @Component
+@RequiredArgsConstructor
 public class ValidadorPacienteSinOtraConsultaDeLaEspecialidadEnElDia implements ValidadorDeConsultas {
 
-    @Autowired
-    private ConsultaRepository consultaRepository;
-
-    @Autowired
-    private MedicoRepository medicoRepository;
+    private final ConsultaRepository consultaRepository;
+    private final MedicoRepository medicoRepository;
 
     public void validar(DatosReservaConsulta datos) {
         var especialidad = resolverEspecialidad(datos);

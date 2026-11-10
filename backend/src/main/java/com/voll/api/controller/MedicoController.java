@@ -4,7 +4,7 @@ import com.voll.api.domain.medico.*;
 import com.voll.api.domain.usuario.Usuario;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -18,10 +18,10 @@ import java.util.List;
 @RestController
 @RequestMapping("/medicos")
 @SecurityRequirement(name = "bearer-key")
+@RequiredArgsConstructor
 public class MedicoController {
 
-    @Autowired
-    private MedicoService medicoService;
+    private final MedicoService medicoService;
 
     @PostMapping
     @PreAuthorize("hasRole('ADMINISTRADOR')")

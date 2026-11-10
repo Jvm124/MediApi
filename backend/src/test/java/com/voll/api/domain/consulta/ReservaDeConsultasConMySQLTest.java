@@ -25,8 +25,10 @@ import org.springframework.context.annotation.Import;
 import org.testcontainers.DockerClientFactory;
 import org.testcontainers.mysql.MySQLContainer;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 
+import static com.voll.api.infra.reloj.ConfiguracionDelReloj.ZONA_DE_LA_CLINICA;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -51,6 +53,14 @@ class ReservaDeConsultasConMySQLTest {
             // La base se llama vollmed_api porque V5 inserta en vollmed_api.usuarios (CAL-04).
             // Es otro servidor, dentro de Docker: tu MySQL local no se toca.
             return new MySQLContainer("mysql:8.4").withDatabaseName("vollmed_api");
+        }
+
+        // Las reglas de la reserva piden la hora de la clínica (SEC-07). Aquí se fija una semana antes de las
+        // consultas de la prueba, así da lo mismo cuándo se ejecute (antes, la prueba habría dejado de pasar
+        // en enero de 2030).
+        @Bean
+        Clock reloj() {
+            return Clock.fixed(LUNES_A_LAS_10.minusWeeks(1).atZone(ZONA_DE_LA_CLINICA).toInstant(), ZONA_DE_LA_CLINICA);
         }
     }
 

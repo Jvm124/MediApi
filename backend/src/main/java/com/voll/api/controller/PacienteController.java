@@ -4,7 +4,7 @@ import com.voll.api.domain.paciente.*;
 import com.voll.api.domain.usuario.Usuario;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -17,10 +17,10 @@ import org.springframework.web.util.UriComponentsBuilder;
 @RestController
 @RequestMapping("/pacientes")
 @SecurityRequirement(name = "bearer-key")
+@RequiredArgsConstructor
 public class PacienteController {
 
-    @Autowired
-    private PacienteService pacienteService;
+    private final PacienteService pacienteService;
 
     // Auto-registro público (crea paciente + cuenta). Debe estar permitido sin token
     // en tu SecurityFilterChain.

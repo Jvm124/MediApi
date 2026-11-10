@@ -8,9 +8,8 @@ import com.voll.api.domain.usuario.Usuario;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 
 @Service
 public class TokenService {
@@ -31,8 +30,10 @@ public class TokenService {
         }
     }
 
+    // Un Instant es un momento exacto, el mismo en cualquier zona horaria: el token dura 2 horas
+    // en cualquier servidor (SEC-07).
     private Instant fechaExpiracion() {
-        return LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.of("-05:00"));
+        return Instant.now().plus(Duration.ofHours(2));
     }
 
     public String getSubject(String tokenJWT){

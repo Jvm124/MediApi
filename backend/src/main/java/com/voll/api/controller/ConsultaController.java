@@ -4,7 +4,7 @@ import com.voll.api.domain.consulta.*;
 import com.voll.api.domain.usuario.Usuario;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -15,10 +15,10 @@ import java.util.List;
 @RestController
 @RequestMapping("/consultas")
 @SecurityRequirement(name = "bearer-key")
+@RequiredArgsConstructor
 public class ConsultaController {
 
-    @Autowired
-    private ReservaDeConsultas reserva;
+    private final ReservaDeConsultas reserva;
 
     @PostMapping
     @PreAuthorize("hasAnyRole('PACIENTE', 'RECEPCIONISTA')")
