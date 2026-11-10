@@ -177,3 +177,7 @@ Desde el [PR #17](https://github.com/Jvm124/MediApi/pull/17), el CI (GitHub Acti
 - TypeScript 7: `typescript-eslint`, incluso en su última versión (8.72.2), solo admite TypeScript hasta la 6.0. Es la única actualización pendiente que choca con otra dependencia, y la revisión de npm de Dependabot fallaba con «Error while updating peer dependency». `.github/dependabot.yml` ignora las versiones mayores de TypeScript; pasar a la 6 o a la 7 queda como tarea aparte.
 
 Quedan 10 avisos moderados de `npm audit`, todos de desarrollo; en producción no hay ninguno. Vienen del mismo `minimatch` afectado, que llega a través de eslint 10 y `typescript-eslint`. `npm audit fix --force` no es una solución: bajaría eslint a la 9.
+
+### Fase 2 — `fix/errores-y-mensajes`
+
+- [x] BUG-02: el backend responde los errores con el formato `ProblemDetail` (RFC 9457), con el mensaje para el usuario en `detail`, y `getErrorMessage` lee ese campo. Ahora se ve, por ejemplo, «Ya existe un paciente con ese email» en vez del mensaje genérico. Los errores de validación traen además la lista `errores`, con cada campo y su mensaje, y el 404 ya no llega vacío. El login, el registro y la reserva leían `data.message` por su cuenta; ahora usan `getErrorMessage`, y con eso desaparecen dos errores del lint (`no-explicit-any`). `TratadorDeErroresTest` comprueba los tres casos.

@@ -7,6 +7,7 @@ import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import { useAuth } from '@/hooks/useAuth';
 import { registerSchema, type RegisterFormData } from '@/schemas/registerSchema';
+import { getErrorMessage } from '@/utils/getErrorMessage';
 
 const RegisterPage = () => {
     const navigate = useNavigate();
@@ -25,8 +26,8 @@ const RegisterPage = () => {
             const { confirmPassword, acceptTerms, ...payload } = data;
             await registerUser(payload);
             navigate('/paciente');   // ← antes '/dashboard' (que da 404)
-        } catch (err: any) {
-            setServerError(err?.response?.data?.message || 'No se pudo crear la cuenta');
+        } catch (err) {
+            setServerError(getErrorMessage(err, 'No se pudo crear la cuenta'));
         }
     };
 

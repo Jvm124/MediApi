@@ -1,5 +1,4 @@
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -10,6 +9,7 @@ import PublicLayout from '@/components/layout/PublicLayout';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import Spinner from '@/components/ui/Spinner';
+import { getErrorMessage } from '@/utils/getErrorMessage';
 
 const ReservarCitaPage = () => {
     const navigate = useNavigate();
@@ -47,10 +47,7 @@ const ReservarCitaPage = () => {
             });
             navigate('/paciente');
         } catch (err) {
-            const message = axios.isAxiosError(err)
-                ? err.response?.data?.message
-                : undefined;
-            setServerError(message || 'No se pudo realizar la reserva');
+            setServerError(getErrorMessage(err, 'No se pudo realizar la reserva'));
         }
     };
 
