@@ -25,6 +25,13 @@ updates:
     groups:
       menores-y-parches:
         update-types: ["minor", "patch"]
+    ignore:
+      # El proyecto usa Node.js 24: sus tipos se quedan en la 24 (sí llegan menores y parches).
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+      # Tailwind 4 necesita una migración aparte (ver el seguimiento de la revisión).
+      - dependency-name: "tailwindcss"
+        update-types: ["version-update:semver-major"]
 
   # Las acciones del CI (.github/workflows/ci.yml): propone un PR cuando sale una versión
   # mayor nueva, por ejemplo actions/checkout@v8.
