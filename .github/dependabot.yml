@@ -32,6 +32,10 @@ updates:
       # Tailwind 4 necesita una migración aparte (ver el seguimiento de la revisión).
       - dependency-name: "tailwindcss"
         update-types: ["version-update:semver-major"]
+      # typescript-eslint (lo usa el lint) solo admite TypeScript hasta la 6.0, y la 7 hace
+      # fallar a Dependabot. Subir de versión mayor queda para una migración aparte.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
 
   # Las acciones del CI (.github/workflows/ci.yml): propone un PR cuando sale una versión
   # mayor nueva, por ejemplo actions/checkout@v8.
