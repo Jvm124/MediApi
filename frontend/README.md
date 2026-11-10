@@ -4,7 +4,7 @@ Sistema de gestión de citas médicas. Frontend desarrollado en React + TypeScri
 Aun no esta terminado
 ## 🚀 Tecnologías
 
-- React 18
+- React 19
 - TypeScript
 - Vite
 - TailwindCSS

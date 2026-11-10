@@ -161,3 +161,15 @@ Una rama y un PR por fase. Cada commit y cada PR, con tu autorización.
 - [x] BUG-08: `frontend/.env.example` apunta a `http://localhost:8080`, como el `README` del frontend; con `/api` fallaba el login. Se quitó el proxy `/api` de `vite.config.ts`: nadie lo usaba y, como no quitaba el prefijo, tampoco habría funcionado.
 
 CAL-04 no se corrigió junto con SEC-01, como se proponía arriba, porque editar `V5` obliga a reparar cada base que ya la aplicó. Hay que corregirlo antes de migrar otra base, como `vollmed_api_test`. Ver las consecuencias del [ADR 0002](../adr/0002-admin-inicial-por-variables-de-entorno.md).
+
+### Después de la fase 1 — PR de Dependabot
+
+Dependabot empezó a funcionar al fusionar la fase 1 y abrió seis PR. Los que se fusionaron se probaron en local: en el backend, `./mvnw test` y la aplicación en marcha; en el frontend, `npm ci`, `npm run build` y la aplicación en marcha.
+
+- [PR #8](https://github.com/Jvm124/MediApi/pull/8), backend: Spring Boot 4.1.2, springdoc 3.2.0 y Maven Wrapper 3.10.0. Spring Boot 4.1.2 trae Flyway 12, que validó las 7 migraciones sin cambiar la base. Las propiedades de SEC-06 en `pom.xml` siguen haciendo falta, porque Spring Boot 4.1.2 tampoco trae las versiones corregidas.
+- [PR #13](https://github.com/Jvm124/MediApi/pull/13) y [PR #10](https://github.com/Jvm124/MediApi/pull/10), frontend: Vite 8 y `@vitejs/plugin-react` 6. Tienen que ir juntos, porque la versión 4 del plugin solo acepta hasta Vite 7. Con Vite 8 desaparece el aviso alto de Vite 5 que había quedado pendiente en SEC-06.
+- [PR #9](https://github.com/Jvm124/MediApi/pull/9), frontend: React 19.3, react-hook-form 7.91, lucide-react 1.70 y herramientas de desarrollo. `@types/react` y `@types/react-dom` pasan de la 18 a la 19, lo que resuelve esa parte de CAL-05.
+- [PR #12](https://github.com/Jvm124/MediApi/pull/12), Tailwind 4: se fusionó y se revirtió con el [PR #14](https://github.com/Jvm124/MediApi/pull/14). Tailwind 4 mueve su plugin de PostCSS a `@tailwindcss/postcss`, y sin una migración el build falla. La migración (`npx @tailwindcss/upgrade` y revisar las pantallas) queda como tarea aparte. Mientras tanto, cuando Dependabot vuelva a proponer Tailwind 4, se comenta `@dependabot ignore this major version` en su PR.
+- [PR #11](https://github.com/Jvm124/MediApi/pull/11), `@types/node` 26: no se fusiona, porque el proyecto usa Node.js 24. Esa versión mayor se ignora de la misma forma.
+
+Quedan 10 avisos moderados de `npm audit`, todos de desarrollo; en producción no hay ninguno. Vienen del mismo `minimatch` afectado, que llega a través de eslint 10 y `typescript-eslint`. `npm audit fix --force` no es una solución: bajaría eslint a la 9.
