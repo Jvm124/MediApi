@@ -1,0 +1,15 @@
+# --- IDEs ---
+# IntelliJ IDEA abre backend/ y WebStorm abre frontend/; cada uno guarda su .idea dentro de esa carpeta.
+.idea/
+*.iml
+.vscode/
+
+# --- Sistema operativo ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Variables de entorno locales (nunca subir secretos) ---
+.env
+.env.*
+!.env.example

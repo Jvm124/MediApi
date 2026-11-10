@@ -1,0 +1,71 @@
+# MediApi
+
+Plataforma web para reservar y gestionar citas médicas. Tiene una API REST en Spring Boot y una aplicación web en React, las dos en un solo repositorio (monorepo).
+
+## Estructura
+
+| Carpeta | Qué contiene | Se abre con |
+|---|---|---|
+| [`backend/`](backend/) | API REST: Spring Boot 4, Java 21, MySQL, Flyway, Spring Security + JWT, Swagger | IntelliJ IDEA |
+| [`frontend/`](frontend/) | Aplicación web: React 19, TypeScript, Vite, Tailwind CSS | WebStorm |
+| [`docs/`](docs/README.md) | Decisiones de arquitectura, problemas resueltos e ideas | — |
+
+```mermaid
+flowchart LR
+    U([Usuario]) --> F["frontend<br/>React + Vite<br/>:5173"]
+    F -- "HTTP + JWT" --> B["backend<br/>Spring Boot<br/>:8080"]
+    B -- "JPA + Flyway" --> D[("MySQL<br/>vollmed_api")]
+```
+
+## Requisitos
+
+- Java 21 (Eclipse Temurin)
+- Node.js 24 y npm
+- MySQL 8 con una base de datos `vollmed_api`
+
+## Cómo levantarlo en local
+
+### 1. Backend: abrir `backend/` en IntelliJ IDEA
+
+Variables de entorno necesarias. En IntelliJ se configuran en *Run → Edit Configurations → Environment variables*:
+
+| Variable | Para qué |
+|---|---|
+| `DB_PASSWORD` | Contraseña del usuario de MySQL |
+| `JWT_SECRET` | Secreto para firmar los tokens JWT |
+
+```bash
+cd backend
+./mvnw spring-boot:run
+```
+
+En PowerShell usa `.\mvnw spring-boot:run`. Al arrancar, Flyway crea las tablas. La documentación interactiva de la API queda en <http://localhost:8080/swagger-ui.html>.
+
+### 2. Frontend: abrir `frontend/` en WebStorm
+
+Copia `frontend/.env.example` como `frontend/.env` y completa:
+
+| Variable | Valor en local |
+|---|---|
+| `VITE_API_BASE_URL` | `http://localhost:8080` |
+| `VITE_RECAPTCHA_SITE_KEY` | Tu clave pública de reCAPTCHA |
+
+> **Ojo:** `.env.example` todavía trae `http://localhost:8080/api`, pero el backend no usa el prefijo `/api`. Está anotado como pendiente en [ideas y debates](docs/ideas/ideas-y-debates.md).
+
+```bash
+cd frontend
+npm ci
+npm run dev
+```
+
+La aplicación queda en <http://localhost:5173>. El backend solo acepta peticiones (CORS) desde ese origen.
+
+## Flujo de trabajo con git
+
+- `main` siempre debe compilar y funcionar.
+- Cada cambio va en su propia rama y entra a `main` con un Pull Request. Prefijos de rama: `feature/`, `fix/`, `refactor/`, `test/`, `docs/`, `chore/`.
+- Los mensajes de commit siguen [Conventional Commits](https://www.conventionalcommits.org/es/) en español: `feat: ...`, `fix: ...`, `refactor: ...`, `test: ...`, `docs: ...`, `chore: ...`.
+
+## Documentación
+
+Las decisiones, los problemas que aparecieron con su solución y las ideas pendientes están en [`docs/`](docs/README.md).
