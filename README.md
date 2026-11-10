@@ -54,8 +54,6 @@ Copia `frontend/.env.example` como `frontend/.env` y completa:
 | `VITE_API_BASE_URL` | `http://localhost:8080` |
 | `VITE_RECAPTCHA_SITE_KEY` | Tu clave pública de reCAPTCHA |
 
-> **Ojo:** `.env.example` todavía trae `http://localhost:8080/api`, pero el backend no usa el prefijo `/api`. Está anotado como pendiente en [ideas y debates](docs/ideas/ideas-y-debates.md).
-
 ```bash
 cd frontend
 npm ci
