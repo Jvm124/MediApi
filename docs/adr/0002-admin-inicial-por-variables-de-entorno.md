@@ -1,7 +1,7 @@
 # 0002 — Crear el administrador inicial con variables de entorno
 
 - **Fecha:** 2026-11-09
-- **Estado:** aceptada
+- **Estado:** aceptada. Lo que dice sobre `V5` lo cambió el [ADR 0004](0004-vaciar-v5-y-reparar-su-checksum.md).
 
 ## Contexto
 
@@ -15,7 +15,7 @@ Hace falta al menos un administrador para dar de alta a médicos y personal, per
 - Si faltan las variables, la aplicación arranca igual y lo avisa en el log.
 - La aplicación **no arranca**, y explica por qué, si la contraseña tiene menos de 8 caracteres o más de 72 bytes (el límite de BCrypt), o si el correo ya es de otro usuario.
 - La migración `V7` borra al admin de `V5` solo si todavía tiene el hash publicado. Si ya se le cambió la contraseña, no lo toca.
-- `V5` no se modifica, porque ya está aplicada y Flyway rechazaría el cambio de checksum.
+- `V5` no se modifica, porque ya está aplicada y Flyway rechazaría el cambio de checksum. *Lo cambió el ADR 0004: `V5` ya no inserta nada.*
 - Se borró `GenerarHashTest`. El historial de git no se reescribe: la contraseña sigue en commits viejos, pero ya no sirve en ninguna base.
 
 ## Alternativas consideradas
@@ -30,4 +30,4 @@ Hace falta al menos un administrador para dar de alta a médicos y personal, per
 ## Consecuencias
 
 - Para tener un admin en local hay que definir `ADMIN_EMAIL` y `ADMIN_PASSWORD` en IntelliJ. Se puede volver a usar `admin@voll.med`: lo que cambia es la contraseña. Desde el [ADR 0003](0003-credenciales-locales-en-env.md) también se pueden poner en `backend/.env`.
-- **Ojo con CAL-04:** `V5` inserta en `vollmed_api.usuarios`, con el nombre de la base escrito a mano. Si se migra otra base, por ejemplo `vollmed_api_test`, `V5` puede volver a insertar el admin publicado en `vollmed_api`, donde `V7` ya no se vuelve a ejecutar. Hay que corregir `V5` antes de migrar otra base, a más tardar al empezar las pruebas con base de datos (fase 3).
+- **Ojo con CAL-04:** `V5` inserta en `vollmed_api.usuarios`, con el nombre de la base escrito a mano. Si se migra otra base, por ejemplo `vollmed_api_test`, `V5` puede volver a insertar el admin publicado en `vollmed_api`, donde `V7` ya no se vuelve a ejecutar. Hay que corregir `V5` antes de migrar otra base, a más tardar al empezar las pruebas con base de datos (fase 3). *Se corrigió con el [ADR 0004](0004-vaciar-v5-y-reparar-su-checksum.md).*

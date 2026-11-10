@@ -50,9 +50,9 @@ class ReservaDeConsultasConMySQLTest {
         @Bean
         @ServiceConnection
         MySQLContainer mysql() {
-            // La base se llama vollmed_api porque V5 inserta en vollmed_api.usuarios (CAL-04).
-            // Es otro servidor, dentro de Docker: tu MySQL local no se toca.
-            return new MySQLContainer("mysql:8.4").withDatabaseName("vollmed_api");
+            // Es otro servidor, dentro de Docker: tu MySQL local no se toca. La base se llama «test», el nombre
+            // por defecto de Testcontainers: desde CAL-04, las migraciones funcionan con cualquier nombre.
+            return new MySQLContainer("mysql:8.4");
         }
 
         // Las reglas de la reserva piden la hora de la clínica (SEC-07). Aquí se fija una semana antes de las

@@ -1,2 +1,5 @@
-INSERT INTO vollmed_api.usuarios (correo, contrasenia, rol,activo)
-VALUES ('admin@voll.med', '$2a$10$5lZJvppi8gOMZ3fc62HoMe6aCsbC15BtHX8VTxhW2ivWmTGcWNQ8q', 'ADMINISTRADOR',true);
+-- Esta migración ya no inserta nada (CAL-04).
+-- Antes sembraba al admin admin@voll.med con la contraseña que quedó publicada (SEC-01), y escribía en
+-- vollmed_api.usuarios, con el nombre de la base escrito a mano: en una base con otro nombre fallaba o
+-- escribía en vollmed_api. El admin inicial lo crea InicializadorDeAdmin (docs/adr/0002).
+-- Al cambiarla cambió su checksum: cada base que ya la tenía aplicada se repara una vez (docs/adr/0004).

@@ -5,6 +5,7 @@ import com.voll.api.controller.ConsultaController;
 import com.voll.api.controller.MedicoController;
 import com.voll.api.controller.PacienteController;
 import com.voll.api.controller.UsuarioController;
+import com.voll.api.domain.usuario.UsuarioRepository;
 import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,7 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * sus piezas se conectan: controladores, servicios, validadores y seguridad. Protege la inyección por
  * constructor de CAL-01 (docs/revisiones/0001-revision-inicial.md): si a una clase le faltara una dependencia,
  * la aplicación no arrancaría y esta prueba fallaría. También comprueba que la aplicación usa la hora de Lima
- * (SEC-07).
+ * (SEC-07), y que las migraciones funcionan en una base con otro nombre y no dejan ningún usuario (CAL-04).
  */
 @SpringBootTest(properties = {
         "api.security.token.secret=secreto-solo-para-pruebas",
@@ -45,9 +46,9 @@ class AplicacionCompletaConMySQLTest {
         @Bean
         @ServiceConnection
         MySQLContainer mysql() {
-            // La base se llama vollmed_api porque V5 inserta en vollmed_api.usuarios (CAL-04).
-            // Es otro servidor, dentro de Docker: tu MySQL local no se toca.
-            return new MySQLContainer("mysql:8.4").withDatabaseName("vollmed_api");
+            // Es otro servidor, dentro de Docker: tu MySQL local no se toca. La base se llama «test», el nombre
+            // por defecto de Testcontainers: desde CAL-04, las migraciones funcionan con cualquier nombre.
+            return new MySQLContainer("mysql:8.4");
         }
     }
 
@@ -77,5 +78,13 @@ class AplicacionCompletaConMySQLTest {
         // El validador con el que Spring revisa los datos que llegan a la API (@Valid), @Future incluido, usa
         // ese mismo reloj. Sin ConfiguracionDelReloj usaría otro, con la zona horaria del equipo.
         assertThat(contexto.getBean(ValidatorFactory.class).getClockProvider().getClock()).isSameAs(reloj);
+    }
+
+    @Test
+    @DisplayName("Una base nueva no trae ningún usuario: el admin inicial solo lo crea InicializadorDeAdmin")
+    void unaBaseNuevaNoTraeUsuarios() {
+        // Antes, V5 sembraba al admin con la contraseña publicada (SEC-01 y CAL-04). Esta prueba no configura el
+        // admin inicial, así que cualquier usuario tendría que venir de las migraciones.
+        assertThat(contexto.getBean(UsuarioRepository.class).count()).isZero();
     }
 }
