@@ -12,7 +12,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -29,8 +32,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Comprueba, con la misma configuración de Spring MVC y Jackson que usa la app, que los errores
- * salen con el formato ProblemDetail (RFC 9457) y que el mensaje para el usuario va en "detail",
- * que es lo que muestra el frontend. Cubre BUG-02 de docs/revisiones/0001-revision-inicial.md.
+ * salen con el formato ProblemDetail (RFC 9457), con el código correcto y con el mensaje para el
+ * usuario en "detail", que es lo que muestra el frontend. Cubre BUG-02 y BUG-03 de
+ * docs/revisiones/0001-revision-inicial.md (los mensajes del login están en AutenticacionControllerTest).
  * La seguridad se desactiva (addFilters = false) y no se usa la base de datos.
  */
 @WebMvcTest(controllers = TratadorDeErroresTest.ControladorDePrueba.class)
@@ -52,6 +56,21 @@ class TratadorDeErroresTest {
 
         @PostMapping("/datos")
         void datos(@RequestBody @Valid DatosDePrueba datos) {
+        }
+
+        @GetMapping("/sin-permiso")
+        void sinPermiso() {
+            throw new AccessDeniedException("Access Denied");
+        }
+
+        @GetMapping("/duplicado")
+        void duplicado() {
+            throw new DataIntegrityViolationException("Duplicate entry 'ana@ejemplo.com' for key 'usuarios.correo'");
+        }
+
+        @GetMapping("/inesperado")
+        void inesperado() {
+            throw new IllegalStateException("detalle interno que no debe salir");
         }
     }
 
@@ -95,5 +114,40 @@ class TratadorDeErroresTest {
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.detail").value(containsString("nombre: ")))
                 .andExpect(jsonPath("$.errores[0].campo").value("nombre"));
+    }
+
+    @Test
+    @DisplayName("Sin el rol necesario responde 403 con un mensaje claro")
+    void sinPermiso() throws Exception {
+        mvc.perform(get("/sin-permiso"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.detail").value("No tienes permiso para hacer esto."));
+    }
+
+    @Test
+    @DisplayName("Un dato repetido que llega a la base de datos responde 409, no 500")
+    void datoRepetido() throws Exception {
+        mvc.perform(get("/duplicado"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.detail")
+                        .value("Ya existe un registro con esos datos (por ejemplo, el mismo correo o documento)."))
+                .andExpect(content().string(not(containsString("Duplicate entry"))));
+    }
+
+    @Test
+    @DisplayName("Un error inesperado responde 500 con un mensaje seguro, sin el detalle interno")
+    void errorInesperado() throws Exception {
+        mvc.perform(get("/inesperado"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.detail").value("Ocurrió un error inesperado. Intenta de nuevo más tarde."))
+                .andExpect(content().string(not(containsString("detalle interno"))));
+    }
+
+    @Test
+    @DisplayName("Un JSON mal formado sigue respondiendo 400, no el 500 genérico")
+    void jsonMalFormado() throws Exception {
+        mvc.perform(post("/datos").contentType(MediaType.APPLICATION_JSON).content("{nombre"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON));
     }
 }
