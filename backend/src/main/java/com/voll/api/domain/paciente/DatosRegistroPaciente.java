@@ -1,6 +1,7 @@
 package com.voll.api.domain.paciente;
 
 import com.voll.api.domain.direccion.DatosDireccion;
+import com.voll.api.domain.usuario.ContraseniaSegura;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -13,6 +14,6 @@ public record DatosRegistroPaciente(
         @NotBlank @Pattern(regexp = "9\\d{8}") String telefono,
         @NotBlank @Pattern(regexp = "\\d{8}") String documento,
         @NotNull @Valid DatosDireccion direccion,
-        @NotBlank String contrasenia
+        @ContraseniaSegura String contrasenia
 ) {
 }
