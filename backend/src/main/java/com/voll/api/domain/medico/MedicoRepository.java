@@ -1,5 +1,6 @@
 package com.voll.api.domain.medico;
 
+import com.voll.api.domain.consulta.EstadoConsulta;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -16,8 +17,10 @@ public interface MedicoRepository extends JpaRepository<Medico, Long> {
 
     Page<Medico> findAllByActivoTrue(Pageable paginacion);
 
-    @Query(" SELECT m from Medico m  where m.activo =true and m.especialidad = :especialidad and m.id not in(select c.idMedico.id from Consulta c where c.fecha = :fecha) order by rand() limit 1 ")
-    Medico elegirMedicoAleatorioDisponibleEnLaFecha(Especialidad especialidad, @NotNull @Future LocalDateTime fecha);
+    // Un médico está libre si no tiene una consulta con ese estado a esa hora. Al reservar se pasa
+    // PROGRAMADA, porque una consulta cancelada ya no ocupa el horario (BUG-01).
+    @Query(" SELECT m from Medico m  where m.activo =true and m.especialidad = :especialidad and m.id not in(select c.idMedico.id from Consulta c where c.fecha = :fecha and c.estado = :estado) order by rand() limit 1 ")
+    Medico elegirMedicoAleatorioDisponibleEnLaFecha(Especialidad especialidad, @NotNull @Future LocalDateTime fecha, EstadoConsulta estado);
 
     @Query("select m.activo from Medico m where m.id = :idMedico")
     boolean findActivoById(Long idMedico);
