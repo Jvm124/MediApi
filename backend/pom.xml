@@ -5,13 +5,13 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>4.0.1</version>
+		<version>4.0.9</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.voll</groupId>
-	<artifactId>api</artifactId>
+	<artifactId>backend</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>api</name>
+	<name>backend</name>
 	<description>API Rest de la aplicacion Voll.med</description>
 	<url/>
 	<licenses>
@@ -28,6 +28,12 @@
 	</scm>
 	<properties>
 		<java.version>21</java.version>
+		<!-- SEC-06: versiones con correcciones de seguridad que Spring Boot 4.0.9 todavía no trae.
+		     Quitar cada una cuando Spring Boot traiga esa versión o una mayor. -->
+		<mysql.version>26.10.0</mysql.version>
+		<jackson-bom.version>3.1.8</jackson-bom.version>
+		<jackson-2-bom.version>2.21.8</jackson-2-bom.version>
+		<json-smart.version>2.6.1</json-smart.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -96,7 +102,7 @@
 		<dependency>
 			<groupId>com.auth0</groupId>
 			<artifactId>java-jwt</artifactId>
-			<version>4.5.1</version>
+			<version>4.6.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springdoc</groupId>

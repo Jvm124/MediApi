@@ -23,28 +23,24 @@ Aquí queda lo que conversamos y evaluamos. Cuando una idea se vuelve decisión,
 - **Conclusión:** el stack de MediApi (Spring Boot + React + TypeScript) va alineado. Falta lo de alrededor: pruebas, Docker, CI y seguridad.
 - **Pendiente:** validarlo con ofertas reales (LinkedIn, Computrabajo, Get on Board).
 
-## Hallazgos para la revisión (por confirmar)
+### Por debatir — ¿Token en `sessionStorage` o en cookie `HttpOnly`?
 
-Cosas que se vieron de paso al armar el monorepo. Se revisan con calma en la revisión de errores y mejoras.
+- **Hoy:** el JWT se guarda en `sessionStorage` y se envía en la cabecera `Authorization`. Es simple y se borra al cerrar la pestaña, pero si hubiera un XSS, un script podría leerlo.
+- **Alternativa:** que el backend lo envíe en una cookie `HttpOnly` + `Secure` + `SameSite`. JavaScript no puede leerla, pero obliga a manejar CSRF y a configurar CORS con credenciales.
+- **A decidir** antes de desplegar. Relacionado: CAL-06 en la [revisión inicial](../revisiones/0001-revision-inicial.md).
 
-- [ ] `frontend/.env.example` trae `VITE_API_BASE_URL=http://localhost:8080/api`, pero el backend no usa el prefijo `/api`, así que con ese valor fallan todas las llamadas. El proxy `/api` de `vite.config.ts` tampoco se está usando.
-- [ ] `frontend/README.md` dice React 18, pero `package.json` usa React 19. Además, `@types/react` y `@types/react-dom` siguen en la versión 18.
-- [ ] En `CorsConfig.java` quedó un comentario sobrante (`// <- renombrada (ver nota abajo)`) y el origen permitido (`http://localhost:5173`) está fijo en el código. Conviene moverlo a la configuración.
-- [ ] Sigue el endpoint de prueba `/hello` del curso.
-- [ ] `npm run lint` marca 8 errores y 1 advertencia, que ya estaban antes de la migración. El build sí pasa.
-  - `setState` llamado directamente dentro de un `useEffect` (provoca renders en cascada): `AdminMedicosPage`, `MedicoDashboardPage` y `MedicoPerfilPage`.
-  - Tipos `any` en `LoginPage` y `RegisterPage`.
-  - Variables sin usar (`confirmPassword`, `acceptTerms`) en `RegisterPage`.
-  - `AuthContext.tsx` exporta el contexto y el componente en el mismo archivo, lo que rompe el *fast refresh*.
-  - Advertencia en `ReservarCitaPage`: `watch()` de React Hook Form no es compatible con la memoización del React Compiler.
-- [ ] npm 12 bloquea por defecto el script `postinstall` de `esbuild` (`allowScripts`). El build funciona igual, pero hay que decidir si se aprueba con `npm install-scripts approve esbuild`.
+## Hallazgos
+
+Los hallazgos que se vieron al armar el monorepo se confirmaron y ampliaron en la [revisión inicial](../revisiones/0001-revision-inicial.md) (ver SEC-06, BUG-08, BUG-09, CAL-02 y CAL-05). El seguimiento se hace ahí.
+
+- [ ] npm 12 bloquea por defecto el `postinstall` de `esbuild` (`allowScripts`). El build funciona igual; hay que decidir si se aprueba con `npm install-scripts approve esbuild`.
 
 ## Pendientes
 
-- [ ] Subir la rama `chore/monorepo`, abrir el PR hacia `main` y fusionarlo.
+- [x] Subir la rama `chore/monorepo`, abrir el PR hacia `main` y fusionarlo (PR #6, con merge commit).
 - [ ] Archivar `Jvm124/Healthcare` en GitHub con un enlace a MediApi.
-- [ ] Revisar errores y mejoras del backend y del frontend.
-- [ ] Revisar la seguridad: JWT, CORS, validaciones y dependencias.
+- [x] Revisar errores, mejoras y seguridad del backend y del frontend: [revisión inicial](../revisiones/0001-revision-inicial.md).
+- [ ] Corregir los hallazgos por fases (plan en la revisión).
 - [ ] Pruebas unitarias: JUnit 5 + Mockito en el backend y Vitest + Testing Library en el frontend.
 - [ ] `docker-compose.yml` en la raíz (MySQL + backend + frontend).
 - [ ] CI con GitHub Actions filtrado por carpeta.

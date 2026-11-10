@@ -27,12 +27,18 @@ flowchart LR
 
 ### 1. Backend: abrir `backend/` en IntelliJ IDEA
 
-Variables de entorno necesarias. En IntelliJ se configuran en *Run → Edit Configurations → Environment variables*:
+Copia `backend/.env.example` como `backend/.env` y completa los valores, sin comillas ni tildes (el archivo explica el formato). El backend lee ese archivo al arrancar, así que no hace falta configurar nada en IntelliJ. Git ignora `.env`, así que tus valores no se suben.
 
 | Variable | Para qué |
 |---|---|
 | `DB_PASSWORD` | Contraseña del usuario de MySQL |
-| `JWT_SECRET` | Secreto para firmar los tokens JWT |
+| `JWT_SECRET` | Secreto para firmar los tokens JWT: una cadena larga y aleatoria |
+| `ADMIN_EMAIL` | Correo del administrador inicial |
+| `ADMIN_PASSWORD` | Contraseña del administrador inicial, de al menos 8 caracteres |
+
+Si no existe ningún administrador, el backend lo crea al arrancar con `ADMIN_EMAIL` y `ADMIN_PASSWORD`. Después esas dos variables ya no hacen falta. Más detalles en el [ADR 0002](docs/adr/0002-admin-inicial-por-variables-de-entorno.md).
+
+También puedes definirlas como variables de entorno, en Windows o en IntelliJ (*Run → Edit Configurations → Environment variables*). Si una variable está en los dos sitios, gana la variable de entorno. Más detalles en el [ADR 0003](docs/adr/0003-credenciales-locales-en-env.md).
 
 ```bash
 cd backend
@@ -49,8 +55,6 @@ Copia `frontend/.env.example` como `frontend/.env` y completa:
 |---|---|
 | `VITE_API_BASE_URL` | `http://localhost:8080` |
 | `VITE_RECAPTCHA_SITE_KEY` | Tu clave pública de reCAPTCHA |
-
-> **Ojo:** `.env.example` todavía trae `http://localhost:8080/api`, pero el backend no usa el prefijo `/api`. Está anotado como pendiente en [ideas y debates](docs/ideas/ideas-y-debates.md).
 
 ```bash
 cd frontend
