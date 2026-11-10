@@ -144,3 +144,14 @@ Una rama y un PR por fase. Cada commit y cada PR, con tu autorización.
 | 2 | `fix/errores-y-mensajes` | BUG-02, BUG-03, SEC-05 y BUG-01 |
 | 3 | `refactor/reloj-y-pruebas` | SEC-07, CAL-01 y las primeras pruebas unitarias (validadores y `ReservaDeConsultas`) |
 | 4 | Por decidir | SEC-04 (límite de intentos), BUG-04 (recepcionista), BUG-05 (estados), BUG-06 (concurrencia), BUG-11 y CAL-02 a CAL-06 |
+
+## Seguimiento
+
+### Fase 1 — `fix/seguridad-critica`
+
+- [x] SEC-01: el admin inicial se crea con `ADMIN_EMAIL` y `ADMIN_PASSWORD`, `V7` borra al admin publicado y se eliminó `GenerarHashTest`. Ver el [ADR 0002](../adr/0002-admin-inicial-por-variables-de-entorno.md).
+- [ ] SEC-02 y SEC-03: manejo del token.
+- [ ] SEC-06: dependencias con vulnerabilidades.
+- [ ] BUG-08: `.env.example` del frontend.
+
+CAL-04 no se corrigió junto con SEC-01, como se proponía arriba, porque editar `V5` obliga a reparar cada base que ya la aplicó. Hay que corregirlo antes de migrar otra base, como `vollmed_api_test`. Ver las consecuencias del [ADR 0002](../adr/0002-admin-inicial-por-variables-de-entorno.md).

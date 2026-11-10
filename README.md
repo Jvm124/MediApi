@@ -33,6 +33,10 @@ Variables de entorno necesarias. En IntelliJ se configuran en *Run → Edit Conf
 |---|---|
 | `DB_PASSWORD` | Contraseña del usuario de MySQL |
 | `JWT_SECRET` | Secreto para firmar los tokens JWT |
+| `ADMIN_EMAIL` | Correo del administrador inicial |
+| `ADMIN_PASSWORD` | Contraseña del administrador inicial, de al menos 8 caracteres |
+
+Si no existe ningún administrador, el backend lo crea al arrancar con `ADMIN_EMAIL` y `ADMIN_PASSWORD`. Después esas dos variables ya no hacen falta. Más detalles en el [ADR 0002](docs/adr/0002-admin-inicial-por-variables-de-entorno.md).
 
 ```bash
 cd backend
