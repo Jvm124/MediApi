@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.voll</groupId>
-	<artifactId>api</artifactId>
+	<artifactId>backend</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>api</name>
+	<name>backend</name>
 	<description>API Rest de la aplicacion Voll.med</description>
 	<url/>
 	<licenses>

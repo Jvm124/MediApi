@@ -27,6 +27,7 @@ Aquí queda registrado qué decidimos, qué falló y cómo se arregló, y qué i
 
 - [0001 — IntelliJ no reconoce el SDK de Java](problemas/0001-sdk-java-intellij.md)
 - [0002 — No se puede borrar la carpeta vieja del backend](problemas/0002-carpeta-vieja-bloqueada.md)
+- [0003 — IntelliJ muestra el módulo como `backend [api]`](problemas/0003-intellij-muestra-api.md)
 
 ### Revisiones
 
