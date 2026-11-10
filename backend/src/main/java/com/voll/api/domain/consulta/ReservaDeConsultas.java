@@ -10,28 +10,20 @@ import com.voll.api.domain.paciente.PacienteRepository;
 import com.voll.api.domain.usuario.Rol;
 import com.voll.api.domain.usuario.Usuario;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class ReservaDeConsultas {
 
-    @Autowired
-    private MedicoRepository medicoRepository;
-
-    @Autowired
-    private PacienteRepository pacienteRepository;
-
-    @Autowired
-    private ConsultaRepository consultaRepository;
-
-    @Autowired
-    private List<ValidadorDeConsultas> validadores;
-
-    @Autowired
-    private List<ValidadorCancelamientoDeConsulta> validadorCancelamiento;
+    private final MedicoRepository medicoRepository;
+    private final PacienteRepository pacienteRepository;
+    private final ConsultaRepository consultaRepository;
+    private final List<ValidadorDeConsultas> validadores;
+    private final List<ValidadorCancelamientoDeConsulta> validadorCancelamiento;
 
     @Transactional
     public DatosDetalleConsulta reservar(DatosReservaConsulta datos, Usuario usuarioLogueado) {

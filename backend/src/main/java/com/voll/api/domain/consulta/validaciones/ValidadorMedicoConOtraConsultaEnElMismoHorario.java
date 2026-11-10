@@ -4,13 +4,13 @@ import com.voll.api.domain.ValidacionException;
 import com.voll.api.domain.consulta.ConsultaRepository;
 import com.voll.api.domain.consulta.DatosReservaConsulta;
 import com.voll.api.domain.consulta.EstadoConsulta;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class ValidadorMedicoConOtraConsultaEnElMismoHorario implements ValidadorDeConsultas {
-    @Autowired
-    private ConsultaRepository consultaRepository;
+    private final ConsultaRepository consultaRepository;
     public void validar(DatosReservaConsulta datos){
         var medicoTieneOtraConsultaEnElMismoHorario = consultaRepository.existsByIdMedicoIdAndFechaAndEstado(
                 datos.idMedico(), datos.fecha(), EstadoConsulta.PROGRAMADA);

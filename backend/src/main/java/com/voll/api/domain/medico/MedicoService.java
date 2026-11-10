@@ -4,7 +4,7 @@ import com.voll.api.domain.ValidacionException;
 import com.voll.api.domain.usuario.Rol;
 import com.voll.api.domain.usuario.Usuario;
 import com.voll.api.domain.usuario.UsuarioRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -14,16 +14,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class MedicoService {
 
-    @Autowired
-    private MedicoRepository medicoRepository;
-
-    @Autowired
-    private UsuarioRepository usuarioRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final MedicoRepository medicoRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public DatosDetalleMedico registrar(DatosRegistroMedico datos) {
