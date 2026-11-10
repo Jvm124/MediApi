@@ -156,6 +156,6 @@ Una rama y un PR por fase. Cada commit y cada PR, con tu autorización.
   - Frontend: `npm audit fix` dejó producción sin vulnerabilidades (antes eran 7, 6 de ellas altas).
   - Dependabot (`.github/dependabot.yml`) revisa Maven y npm cada semana. Empieza a funcionar cuando la rama se fusione en `main`.
   - Quedan 12 avisos solo de desarrollo, que no llegan al navegador de los usuarios. El de Vite 5 (alto, afecta al servidor de desarrollo) se corrige subiendo a Vite 8, un cambio mayor que conviene hacer aparte. Los de eslint (moderados) vienen de un `minimatch` afectado que ninguna versión de eslint 10 corrige todavía.
-- [ ] BUG-08: `.env.example` del frontend.
+- [x] BUG-08: `frontend/.env.example` apunta a `http://localhost:8080`, como el `README` del frontend; con `/api` fallaba el login. Se quitó el proxy `/api` de `vite.config.ts`: nadie lo usaba y, como no quitaba el prefijo, tampoco habría funcionado.
 
 CAL-04 no se corrigió junto con SEC-01, como se proponía arriba, porque editar `V5` obliga a reparar cada base que ya la aplicó. Hay que corregirlo antes de migrar otra base, como `vollmed_api_test`. Ver las consecuencias del [ADR 0002](../adr/0002-admin-inicial-por-variables-de-entorno.md).
