@@ -151,7 +151,11 @@ Una rama y un PR por fase. Cada commit y cada PR, con tu autorización.
 
 - [x] SEC-01: el admin inicial se crea con `ADMIN_EMAIL` y `ADMIN_PASSWORD`, `V7` borra al admin publicado y se eliminó `GenerarHashTest`. Ver el [ADR 0002](../adr/0002-admin-inicial-por-variables-de-entorno.md).
 - [x] SEC-02 y SEC-03: con un token vencido o alterado, o de un usuario suspendido, dado de baja o borrado, se responde 401, y el frontend cierra la sesión sin cambios. Antes de corregirlo, `SeguridadDelTokenTest` confirmó el análisis: sin token se respondía 403, un usuario suspendido entraba y un token vencido o un usuario borrado hacían fallar el filtro. Un login con credenciales incorrectas también pasa de 403 a 401; los mensajes claros llegan con BUG-03.
-- [ ] SEC-06: dependencias con vulnerabilidades.
+- [x] SEC-06: dependencias con vulnerabilidades.
+  - Backend: Spring Boot 4.0.9 y java-jwt 4.6.2.
+  - Frontend: `npm audit fix` dejó producción sin vulnerabilidades (antes eran 7, 6 de ellas altas).
+  - Dependabot (`.github/dependabot.yml`) revisa Maven y npm cada semana. Empieza a funcionar cuando la rama se fusione en `main`.
+  - Quedan 12 avisos solo de desarrollo, que no llegan al navegador de los usuarios. El de Vite 5 (alto, afecta al servidor de desarrollo) se corrige subiendo a Vite 8, un cambio mayor que conviene hacer aparte. Los de eslint (moderados) vienen de un `minimatch` afectado que ninguna versión de eslint 10 corrige todavía.
 - [ ] BUG-08: `.env.example` del frontend.
 
 CAL-04 no se corrigió junto con SEC-01, como se proponía arriba, porque editar `V5` obliga a reparar cada base que ya la aplicó. Hay que corregirlo antes de migrar otra base, como `vollmed_api_test`. Ver las consecuencias del [ADR 0002](../adr/0002-admin-inicial-por-variables-de-entorno.md).

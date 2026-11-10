@@ -1,0 +1,27 @@
+# Dependabot revisa cada semana si hay versiones nuevas de las dependencias y abre un PR para
+# actualizarlas (SEC-06). Las versiones menores y los parches de cada carpeta llegan juntos en
+# un solo PR; las versiones mayores llegan en PRs aparte, porque pueden romper cosas.
+# Solo funciona desde la rama principal (main).
+version: 2
+updates:
+  - package-ecosystem: "maven"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    groups:
+      menores-y-parches:
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    groups:
+      menores-y-parches:
+        update-types: ["minor", "patch"]
