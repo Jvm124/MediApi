@@ -10,7 +10,6 @@ export interface User {
 export interface LoginRequest {
     correo: string;
     contrasenia: string;
-    recaptchaToken?: string; // ← opcional
 }
 
 export interface DatosDireccion {

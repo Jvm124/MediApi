@@ -36,7 +36,6 @@ Copia `.env.example` a `.env` y completa los valores:
 
 ```bash
 VITE_API_BASE_URL=http://localhost:8080
-VITE_RECAPTCHA_SITE_KEY=
 ```
 
 ## 🔗 Backend
