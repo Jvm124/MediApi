@@ -21,4 +21,15 @@ public class AutenticacionService implements UserDetailsService{
         }
         return usuario;
     }
+
+    /**
+     * El correo con el que está guardado el usuario que encuentra la base de datos, o el recibido si no encuentra a
+     * nadie. MySQL compara los correos sin distinguir mayúsculas, tildes ni letras de ancho completo: con
+     * «Ána@Ejemplo.com» se entra en la cuenta de «ana@ejemplo.com». El límite de intentos del login (SEC-04) cuenta
+     * los fallos con este correo, para que esas variantes no den intentos de más.
+     */
+    public String correoGuardado(String correo) {
+        var usuario = usuarioRepository.findByCorreo(correo);
+        return usuario != null ? usuario.getUsername() : correo;
+    }
 }

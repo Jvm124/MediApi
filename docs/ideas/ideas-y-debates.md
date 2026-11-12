@@ -29,6 +29,13 @@ Aquí queda lo que conversamos y evaluamos. Cuando una idea se vuelve decisión,
 - **Alternativa:** que el backend lo envíe en una cookie `HttpOnly` + `Secure` + `SameSite`. JavaScript no puede leerla, pero obliga a manejar CSRF y a configurar CORS con credenciales.
 - **A decidir** antes de desplegar. Relacionado: CAL-06 en la [revisión inicial](../revisiones/0001-revision-inicial.md).
 
+### Por debatir — ¿Un captcha de verdad en el login?
+
+- **Hoy:** el login limita los intentos fallidos por correo y por IP ([ADR 0005](../adr/0005-limite-de-intentos-de-login.md)). El reCAPTCHA que estaba comentado en el frontend se quitó, porque no protegía nada: se enviaba vacío y el backend no lo verificaba.
+- **Idea:** pedir un captcha (reCAPTCHA, hCaptcha o Cloudflare Turnstile, con planes gratuitos), por ejemplo solo después de 2 o 3 fallos, para frenar a los programas antes de que llegue el bloqueo.
+- **Requisito:** el backend tiene que verificar cada token con el servicio del captcha, usando una clave secreta. Sin esa verificación no protege nada (SEC-04 en la [revisión inicial](../revisiones/0001-revision-inicial.md)).
+- **A decidir** antes de desplegar.
+
 ## Hallazgos
 
 Los hallazgos que se vieron al armar el monorepo se confirmaron y ampliaron en la [revisión inicial](../revisiones/0001-revision-inicial.md) (ver SEC-06, BUG-08, BUG-09, CAL-02 y CAL-05). El seguimiento se hace ahí.

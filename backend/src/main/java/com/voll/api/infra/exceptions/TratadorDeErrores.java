@@ -3,6 +3,7 @@ package com.voll.api.infra.exceptions;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import com.voll.api.domain.ValidacionException;
+import com.voll.api.infra.security.DemasiadosIntentosException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
@@ -75,6 +76,14 @@ public class TratadorDeErrores extends ResponseEntityExceptionHandler {
                 ? "Tu cuenta está suspendida o dada de baja."
                 : "Correo o contraseña incorrectos.";
         return ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, mensaje);
+    }
+
+    // Demasiados intentos fallidos de login (SEC-04). Retry-After dice cuántos segundos hay que esperar.
+    @ExceptionHandler(DemasiadosIntentosException.class)
+    public ResponseEntity<ProblemDetail> tratarDemasiadosIntentos(DemasiadosIntentosException e) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header(HttpHeaders.RETRY_AFTER, String.valueOf(e.getSegundosDeEspera()))
+                .body(ProblemDetail.forStatusAndDetail(HttpStatus.TOO_MANY_REQUESTS, e.getMessage()));
     }
 
     // @PreAuthorize rechazó la petición porque el usuario no tiene el rol necesario.

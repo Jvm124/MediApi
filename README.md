@@ -54,7 +54,6 @@ Copia `frontend/.env.example` como `frontend/.env` y completa:
 | Variable | Valor en local |
 |---|---|
 | `VITE_API_BASE_URL` | `http://localhost:8080` |
-| `VITE_RECAPTCHA_SITE_KEY` | Tu clave pública de reCAPTCHA |
 
 ```bash
 cd frontend
