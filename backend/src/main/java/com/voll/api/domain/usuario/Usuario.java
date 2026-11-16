@@ -58,24 +58,49 @@ public class Usuario implements UserDetails {
         this.paciente = paciente;
     }
 
+    // La ficha del médico o del paciente sigue a su cuenta: solo está activa si la cuenta está ACTIVA (BUG-05,
+    // docs/adr/0006). Por eso suspender, reactivar y dar de baja cambian las dos a la vez.
     public void suspender() {
         if (this.estado != EstadoUsuario.ACTIVO) {
             throw new ValidacionException("Solo se puede suspender a un usuario activo");
         }
         this.estado = EstadoUsuario.SUSPENDIDO;
+        desactivarSuFicha();
     }
     public void reactivar() {
         if (this.estado != EstadoUsuario.SUSPENDIDO && this.estado != EstadoUsuario.BAJA) {
             throw new ValidacionException("Solo se puede reactivar a un usuario suspendido o dado de baja");
         }
         this.estado = EstadoUsuario.ACTIVO;
+        activarSuFicha();
     }
     public void darDeBaja() {
         if (this.estado != EstadoUsuario.ACTIVO && this.estado != EstadoUsuario.SUSPENDIDO) {
             throw new ValidacionException("Solo se puede dar de baja a un usuario activo o suspendido");
         }
         this.estado = EstadoUsuario.BAJA;
+        desactivarSuFicha();
     }
+
+    // Los administradores y las recepcionistas no tienen ficha: para ellos no hay nada que cambiar.
+    private void activarSuFicha() {
+        if (medico != null) {
+            medico.activar();
+        }
+        if (paciente != null) {
+            paciente.activar();
+        }
+    }
+
+    private void desactivarSuFicha() {
+        if (medico != null) {
+            medico.desactivar();
+        }
+        if (paciente != null) {
+            paciente.desactivar();
+        }
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_" + this.rol.name()));
@@ -113,6 +138,8 @@ public class Usuario implements UserDetails {
             return false;
         }
 
+        // Desde BUG-05 la ficha sigue a la cuenta, así que aquí ya deberían coincidir. Se mira igual, por si alguien
+        // cambia los datos a mano.
         if (medico != null) {
             return Boolean.TRUE.equals(medico.getActivo());
         }

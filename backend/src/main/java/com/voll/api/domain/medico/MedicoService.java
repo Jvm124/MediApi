@@ -1,6 +1,7 @@
 package com.voll.api.domain.medico;
 
 import com.voll.api.domain.ValidacionException;
+import com.voll.api.domain.usuario.EstadoUsuario;
 import com.voll.api.domain.usuario.Rol;
 import com.voll.api.domain.usuario.Usuario;
 import com.voll.api.domain.usuario.UsuarioRepository;
@@ -60,7 +61,7 @@ public class MedicoService {
         var medico = medicoRepository.findById(id)
                 .orElseThrow(() -> new ValidacionException("No existe un medico con el id informado"));
         if (!medico.getActivo()) {
-            throw new ValidacionException("El medico está dado de baja");
+            throw new ValidacionException("El médico está suspendido o dado de baja");
         }
         return medico;
     }
@@ -89,10 +90,13 @@ public class MedicoService {
     @Transactional
     public void eliminar(Long id) {
         var medico = buscarActivo(id);
-        medico.eliminacionLogicaMedico();
+        medico.desactivar();
 
-        usuarioRepository.findByMedicoId(id).ifPresent(Usuario::darDeBaja);
-        //misma funcionalidad:  usuarioRepository.findByMedicoId(id).ifPresent(usuario -> usuario.darDeBaja());
+        // La cuenta se da de baja junto con la ficha (BUG-05). Si ya estaba de baja, no se toca: antes, darDeBaja()
+        // fallaba con una cuenta de baja y se deshacía también la baja de la ficha.
+        usuarioRepository.findByMedicoId(id)
+                .filter(usuario -> usuario.getEstado() != EstadoUsuario.BAJA)
+                .ifPresent(Usuario::darDeBaja);
     }
 
     // Aqui listo los Medicos Disponibles, esto se usa cuando el paciente esta haciendo su reserva,

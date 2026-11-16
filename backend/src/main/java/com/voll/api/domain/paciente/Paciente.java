@@ -58,7 +58,13 @@ public class Paciente {
         }
     }
 
-    public void eliminacionLogicaPaciente() {
+    // Con la ficha activa, el paciente aparece en las listas y se le puede reservar. Si tiene cuenta, la ficha la
+    // sigue: solo está activa si la cuenta está ACTIVA (BUG-05). Por eso la cambia Usuario.
+    public void activar() {
+        this.activo = true;
+    }
+
+    public void desactivar() {
         this.activo = false;
     }
 }

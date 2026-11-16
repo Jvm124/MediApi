@@ -1,6 +1,7 @@
 package com.voll.api.domain.paciente;
 
 import com.voll.api.domain.ValidacionException;
+import com.voll.api.domain.usuario.EstadoUsuario;
 import com.voll.api.domain.usuario.Rol;
 import com.voll.api.domain.usuario.Usuario;
 import com.voll.api.domain.usuario.UsuarioRepository;
@@ -84,7 +85,14 @@ public class PacienteService {
             throw new ValidacionException("No puedes dar de baja a otro paciente");
         }
         var paciente = buscarActivo(id);
-        paciente.eliminacionLogicaPaciente();
+        paciente.desactivar();
+
+        // Si el paciente tiene cuenta, se da de baja junto con la ficha (BUG-05); si ya estaba de baja, no se toca.
+        // Se usa la cuenta que devuelve el repositorio: la de la sesión la cargó el filtro de seguridad, fuera de
+        // esta transacción, y sus cambios no se guardarían.
+        usuarioRepository.findByPacienteId(id)
+                .filter(usuario -> usuario.getEstado() != EstadoUsuario.BAJA)
+                .ifPresent(Usuario::darDeBaja);
     }
 
     private Paciente buscarActivo(Long id) {
@@ -92,7 +100,7 @@ public class PacienteService {
                 .orElseThrow(() -> new ValidacionException("No existe un paciente con el id informado"));
 
         if (!paciente.getActivo()) {
-            throw new ValidacionException("El paciente está dado de baja");
+            throw new ValidacionException("El paciente está suspendido o dado de baja");
         }
         return paciente;
     }

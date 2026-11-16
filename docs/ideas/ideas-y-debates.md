@@ -36,6 +36,12 @@ Aquí queda lo que conversamos y evaluamos. Cuando una idea se vuelve decisión,
 - **Requisito:** el backend tiene que verificar cada token con el servicio del captcha, usando una clave secreta. Sin esa verificación no protege nada (SEC-04 en la [revisión inicial](../revisiones/0001-revision-inicial.md)).
 - **A decidir** antes de desplegar.
 
+### Por debatir — ¿Qué pasa con las consultas programadas de quien se suspende o se da de baja?
+
+- **Hoy:** desde BUG-05, suspender o dar de baja a un médico o a un paciente desactiva su ficha, así que no recibe reservas nuevas ([ADR 0006](../adr/0006-la-ficha-sigue-a-la-cuenta.md)). Pero sus consultas ya programadas siguen ahí, y un médico suspendido no puede entrar a atenderlas.
+- **Opciones:** cancelarlas solas, con un motivo como `MEDICO_CANCELO` o `PACIENTE_DESISTIO`; mostrárselas al administrador para que las reasigne o las cancele; o dejarlas como están.
+- **A decidir** antes de usar la app con pacientes reales.
+
 ## Hallazgos
 
 Los hallazgos que se vieron al armar el monorepo se confirmaron y ampliaron en la [revisión inicial](../revisiones/0001-revision-inicial.md) (ver SEC-06, BUG-08, BUG-09, CAL-02 y CAL-05). El seguimiento se hace ahí.
