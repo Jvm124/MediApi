@@ -48,7 +48,7 @@ Los dos estados hacen falta: un paciente dado de alta en mostrador tiene ficha p
 
 ## Consecuencias
 
-- Un médico suspendido no aparece en «Médicos activos» ni para reservar. Sigue en el panel de usuarios, con la cuenta SUSPENDIDO, y desde ahí se reactiva.
+- Un médico suspendido no aparece en «Médicos activos» ni para reservar. Sigue en el panel de usuarios, con la cuenta SUSPENDIDO, y desde ahí se reactiva. El aviso del botón «Suspender» lo advierte.
 - Las consultas ya programadas de quien se suspende o se da de baja no se cancelan solas. Es otra decisión, anotada en [ideas y debates](../ideas/ideas-y-debates.md).
 - Las cuentas y fichas que ya estaban desincronizadas las corrige una sola vez la migración `V8__sincronizar-ficha-con-cuenta.sql`, con la misma regla. Solo apaga: desactiva la ficha cuya cuenta está suspendida o de baja, y pasa a BAJA la cuenta ACTIVO cuya ficha está desactivada, como hace ahora la baja desde la ficha. Nadie gana acceso; si hace falta, un administrador «Reincorpora» la cuenta y vuelven las dos. Una vez aplicada, la V8 no se edita nunca ([ADR 0004](0004-vaciar-v5-y-reparar-su-checksum.md)).
 - Un paciente de mostrador dado de baja sigue sin forma de volver, porque no tiene cuenta que reactivar. Va con BUG-11.
