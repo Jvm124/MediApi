@@ -6,10 +6,14 @@ import com.voll.api.domain.direccion.DatosDireccion;
 import com.voll.api.domain.medico.DatosRegistroMedico;
 import com.voll.api.domain.medico.Especialidad;
 import com.voll.api.domain.medico.Medico;
+import com.voll.api.domain.medico.MedicoService;
 import com.voll.api.domain.paciente.DatosRegistroPaciente;
 import com.voll.api.domain.paciente.Paciente;
+import com.voll.api.domain.usuario.EstadoUsuario;
 import com.voll.api.domain.usuario.Rol;
 import com.voll.api.domain.usuario.Usuario;
+import com.voll.api.domain.usuario.UsuarioRepository;
+import com.voll.api.domain.usuario.UsuarioService;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,6 +26,8 @@ import org.springframework.boot.testcontainers.service.connection.ServiceConnect
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.testcontainers.DockerClientFactory;
 import org.testcontainers.mysql.MySQLContainer;
 
@@ -36,6 +42,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * Prueba la reserva de consultas contra un MySQL real. Testcontainers lo arranca en Docker, Flyway aplica
  * las migraciones y al terminar se descarta, así que tu base vollmed_api no se toca. Cubre BUG-01 de
  * docs/revisiones/0001-revision-inicial.md: una hora cancelada se puede volver a reservar con el mismo médico.
+ * Y BUG-05: a un médico con la cuenta de baja no se le puede reservar, y al reincorporarlo sí.
  */
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -43,7 +50,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class ReservaDeConsultasConMySQLTest {
 
     @TestConfiguration(proxyBeanMethods = false)
-    @Import(ReservaDeConsultas.class)
+    @Import({ReservaDeConsultas.class, MedicoService.class, UsuarioService.class})
     @ComponentScan(basePackageClasses = ValidadorDeConsultas.class) // los validadores de la reserva y la cancelación
     static class Configuracion {
 
@@ -62,6 +69,12 @@ class ReservaDeConsultasConMySQLTest {
         Clock reloj() {
             return Clock.fixed(LUNES_A_LAS_10.minusWeeks(1).atZone(ZONA_DE_LA_CLINICA).toInstant(), ZONA_DE_LA_CLINICA);
         }
+
+        // MedicoService guarda la contraseña de la cuenta cifrada, como en la aplicación.
+        @Bean
+        PasswordEncoder passwordEncoder() {
+            return new BCryptPasswordEncoder();
+        }
     }
 
     // Sin Docker (por ejemplo, con Docker Desktop cerrado) estas pruebas se saltan en tu equipo.
@@ -72,9 +85,21 @@ class ReservaDeConsultasConMySQLTest {
 
     private static final LocalDateTime LUNES_A_LAS_10 = LocalDateTime.of(2030, 1, 7, 10, 0);
     private static final Usuario RECEPCIONISTA = new Usuario("recepcion@ejemplo.com", "sin-uso", Rol.RECEPCIONISTA);
+    // De este administrador solo se usa el id, para la regla de que nadie cambia el estado de su propia cuenta.
+    private static final Usuario ADMINISTRADOR =
+            new Usuario(999L, "admin@ejemplo.com", "sin-uso", Rol.ADMINISTRADOR, null, null, EstadoUsuario.ACTIVO);
 
     @Autowired
     private ReservaDeConsultas reserva;
+
+    @Autowired
+    private MedicoService medicoService;
+
+    @Autowired
+    private UsuarioService usuarioService;
+
+    @Autowired
+    private UsuarioRepository usuarioRepository;
 
     @Autowired
     private EntityManager em;
@@ -123,8 +148,43 @@ class ReservaDeConsultasConMySQLTest {
         assertThat(nueva.idMedico()).isEqualTo(medico.getId());
     }
 
+    @Test
+    @DisplayName("No se puede reservar con un médico cuya cuenta se dio de baja en el panel de usuarios (BUG-05)")
+    void medicoConLaCuentaDeBaja() {
+        var idMedico = registrarMedicoConCuenta();
+        var paciente = registrarPaciente(1);
+
+        // «Dar de baja» en el panel de usuarios
+        usuarioService.darDeBaja(cuentaDelMedico(idMedico).getId(), ADMINISTRADOR);
+        guardarYOlvidar();
+
+        assertThatThrownBy(() -> reservarCon(idMedico, paciente))
+                .isInstanceOf(ValidacionException.class)
+                .hasMessage("Consulta no puede ser reservada con medico inactivo");
+    }
+
+    @Test
+    @DisplayName("Al reincorporar a un médico dado de baja, se le puede volver a reservar (BUG-05)")
+    void medicoReincorporado() {
+        var idMedico = registrarMedicoConCuenta();
+        var paciente = registrarPaciente(1);
+
+        // «Dar de baja» en «Médicos activos» y después «Reincorporar» en el panel de usuarios
+        medicoService.eliminar(idMedico);
+        usuarioService.reactivar(cuentaDelMedico(idMedico).getId(), ADMINISTRADOR);
+        guardarYOlvidar();
+
+        var consulta = reservarCon(idMedico, paciente);
+
+        assertThat(consulta.idMedico()).isEqualTo(idMedico);
+    }
+
     private DatosDetalleConsulta reservarCon(Medico medico, Paciente paciente) {
-        var datos = new DatosReservaConsulta(medico.getId(), paciente.getId(), LUNES_A_LAS_10, null);
+        return reservarCon(medico.getId(), paciente);
+    }
+
+    private DatosDetalleConsulta reservarCon(Long idMedico, Paciente paciente) {
+        var datos = new DatosReservaConsulta(idMedico, paciente.getId(), LUNES_A_LAS_10, null);
         return reserva.reservar(datos, RECEPCIONISTA);
     }
 
@@ -142,6 +202,22 @@ class ReservaDeConsultasConMySQLTest {
                 Especialidad.CARDIOLOGIA, direccion(), "Clave-de-prueba-1"));
         em.persist(medico);
         return medico;
+    }
+
+    // Registra al médico como el panel del administrador: con su ficha y su cuenta. Devuelve el id de la ficha.
+    private Long registrarMedicoConCuenta() {
+        return medicoService.registrar(new DatosRegistroMedico("Ana Torres", "ana@ejemplo.com", "912345678",
+                "10000001", Especialidad.CARDIOLOGIA, direccion(), "Clave-de-prueba-1")).id();
+    }
+
+    private Usuario cuentaDelMedico(Long idMedico) {
+        return usuarioRepository.findByMedicoId(idMedico).orElseThrow();
+    }
+
+    // Escribe los cambios en MySQL y vacía la memoria de JPA: lo que venga después se vuelve a leer de la base.
+    private void guardarYOlvidar() {
+        em.flush();
+        em.clear();
     }
 
     private Paciente registrarPaciente(int numero) {

@@ -98,8 +98,14 @@ const AdminDashboardPage = () => {
         }
     };
 
+    // Suspender a un médico o a un paciente también desactiva su ficha, así que no se le pueden reservar consultas
+    // (BUG-05, docs/adr/0006). Los administradores y las recepcionistas no tienen ficha.
     const suspender = (u: UsuarioLista) => {
-        if (!window.confirm(`¿Suspender a ${u.correo}? No podrá iniciar sesión hasta reactivarlo.`)) return;
+        const tieneFicha = u.rol === 'MEDICO' || u.rol === 'PACIENTE';
+        const aviso = tieneFicha
+            ? 'Hasta reactivarlo, no podrá iniciar sesión ni se le podrán reservar consultas.'
+            : 'No podrá iniciar sesión hasta reactivarlo.';
+        if (!window.confirm(`¿Suspender a ${u.correo}? ${aviso}`)) return;
         ejecutar(() => usuariosApi.suspender(u.id), 'No se pudo suspender el usuario');
     };
 

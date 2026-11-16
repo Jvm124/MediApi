@@ -62,7 +62,13 @@ public class Medico {
                 }
         }
 
-        public void eliminacionLogicaMedico() {
+        // Con la ficha activa, el médico aparece en las listas y se le puede reservar. La ficha sigue a la cuenta
+        // del médico: solo está activa si la cuenta está ACTIVA (BUG-05). Por eso la cambia Usuario.
+        public void activar() {
+                this.activo = true;
+        }
+
+        public void desactivar() {
                 this.activo = false;
         }
 }
