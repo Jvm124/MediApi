@@ -44,7 +44,7 @@ public class ConsultaController {
         return ResponseEntity.ok(reserva.listarConsultasDelMedico(usuarioLogueado));
     }
 
-    // El médico da por atendida su consulta: PROGRAMADA -> ATENDIDA.
+    // El médico da por atendida su consulta, desde que llega su hora: PROGRAMADA -> ATENDIDA.
     @PostMapping("/{id}/atender")
     @PreAuthorize("hasRole('MEDICO')")
     public ResponseEntity<DatosDetalleConsulta> atender(

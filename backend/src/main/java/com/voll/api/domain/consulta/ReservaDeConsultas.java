@@ -13,6 +13,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -24,6 +26,8 @@ public class ReservaDeConsultas {
     private final ConsultaRepository consultaRepository;
     private final List<ValidadorDeConsultas> validadores;
     private final List<ValidadorCancelamientoDeConsulta> validadorCancelamiento;
+    // La hora de la clínica (ConfiguracionDelReloj); en las pruebas, una hora fija.
+    private final Clock reloj;
 
     @Transactional
     public DatosDetalleConsulta reservar(DatosReservaConsulta datos, Usuario usuarioLogueado) {
@@ -89,7 +93,8 @@ public class ReservaDeConsultas {
             throw new ValidacionException("Solo puedes atender consultas asignadas a ti");
         }
 
-        consulta.atender();
+        // La consulta revisa que ya sea su hora, con la hora de la clínica.
+        consulta.atender(LocalDateTime.now(reloj));
         return new DatosDetalleConsulta(consulta);
     }
 

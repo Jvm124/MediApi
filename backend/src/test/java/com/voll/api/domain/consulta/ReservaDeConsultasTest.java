@@ -17,10 +17,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import static com.voll.api.infra.reloj.ConfiguracionDelReloj.ZONA_DE_LA_CLINICA;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -32,9 +34,10 @@ import static org.mockito.Mockito.when;
 
 /**
  * Prueba las reglas de ReservaDeConsultas sin Spring ni base de datos: los repositorios y los validadores son
- * simulados con Mockito. Así se prueba solo lo que decide esta clase: a nombre de quién se reserva, qué médico se
- * elige, quién puede cancelar o atender una consulta y qué pasa cuando un validador dice que no. Lo que depende
- * de las consultas a MySQL lo prueba ReservaDeConsultasConMySQLTest.
+ * simulados con Mockito, y la hora de la clínica es un reloj parado (Clock.fixed). Así se prueba solo lo que decide
+ * esta clase: a nombre de quién se reserva, qué médico se elige, quién puede cancelar una consulta, quién y desde
+ * qué hora puede atenderla y qué pasa cuando un validador dice que no. Lo que depende de las consultas a MySQL lo
+ * prueba ReservaDeConsultasConMySQLTest.
  */
 @ExtendWith(MockitoExtension.class)
 class ReservaDeConsultasTest {
@@ -56,9 +59,17 @@ class ReservaDeConsultasTest {
 
     @BeforeEach
     void crearReserva() {
-        // Con la inyección por constructor (CAL-01), la prueba arma la clase con piezas simuladas.
-        reserva = new ReservaDeConsultas(medicoRepository, pacienteRepository, consultaRepository,
-                List.of(validador), List.of(validadorDeCancelacion));
+        // Salvo que la prueba diga otra hora, en la clínica son las 10:30 del lunes: media hora después de la hora de
+        // las consultas de prueba.
+        reserva = reservaALas(LUNES_A_LAS_10.plusMinutes(30));
+    }
+
+    // Con la inyección por constructor (CAL-01), la prueba arma la clase con piezas simuladas y con un reloj parado
+    // en esa hora de Lima (SEC-07).
+    private ReservaDeConsultas reservaALas(LocalDateTime horaEnLima) {
+        var reloj = Clock.fixed(horaEnLima.atZone(ZONA_DE_LA_CLINICA).toInstant(), ZONA_DE_LA_CLINICA);
+        return new ReservaDeConsultas(medicoRepository, pacienteRepository, consultaRepository,
+                List.of(validador), List.of(validadorDeCancelacion), reloj);
     }
 
     // ----- Reservar -----
@@ -227,7 +238,33 @@ class ReservaDeConsultasTest {
     // ----- Atender -----
 
     @Test
-    @DisplayName("El médico asignado marca la consulta como atendida")
+    @DisplayName("Antes de la hora de la consulta, el médico asignado no puede marcarla como atendida")
+    void elMedicoNoAtiendeAntesDeLaHora() {
+        var consulta = consultaProgramada(medico(1L), paciente(2L));
+        when(consultaRepository.findById(10L)).thenReturn(Optional.of(consulta));
+        // Las 9:59: falta un minuto para la consulta.
+        reserva = reservaALas(LUNES_A_LAS_10.minusMinutes(1));
+
+        assertThatThrownBy(() -> reserva.atender(10L, usuarioMedico(medico(1L))))
+                .isInstanceOf(ValidacionException.class)
+                .hasMessageContaining("Solo se puede marcar como atendida desde la hora de la consulta");
+        assertThat(consulta.getEstado()).isEqualTo(EstadoConsulta.PROGRAMADA);
+    }
+
+    @Test
+    @DisplayName("A la hora justa de la consulta, el médico asignado ya puede marcarla como atendida")
+    void elMedicoAtiendeALaHoraJusta() {
+        var consulta = consultaProgramada(medico(1L), paciente(2L));
+        when(consultaRepository.findById(10L)).thenReturn(Optional.of(consulta));
+        reserva = reservaALas(LUNES_A_LAS_10);
+
+        reserva.atender(10L, usuarioMedico(medico(1L)));
+
+        assertThat(consulta.getEstado()).isEqualTo(EstadoConsulta.ATENDIDA);
+    }
+
+    @Test
+    @DisplayName("Pasada la hora de la consulta, el médico asignado la marca como atendida")
     void elMedicoAsignadoAtiende() {
         var consulta = consultaProgramada(medico(1L), paciente(2L));
         when(consultaRepository.findById(10L)).thenReturn(Optional.of(consulta));

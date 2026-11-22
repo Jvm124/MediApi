@@ -46,10 +46,14 @@ public class Consulta {
         this.motivo = null;
     }
 
-    // PROGRAMADA -> ATENDIDA. Cierra la consulta: el médico la dio por terminada.
-    public void atender() {
+    // PROGRAMADA -> ATENDIDA. Cierra la consulta: el médico la dio por terminada. Solo desde la hora de la consulta:
+    // antes, el paciente todavía no pudo ser atendido. «ahora» es la hora de la clínica.
+    public void atender(LocalDateTime ahora) {
         if (this.estado != EstadoConsulta.PROGRAMADA) {
             throw new ValidacionException("Solo se puede atender una consulta programada");
+        }
+        if (ahora.isBefore(this.fecha)) {
+            throw new ValidacionException("Solo se puede marcar como atendida desde la hora de la consulta");
         }
         this.estado = EstadoConsulta.ATENDIDA;
     }
