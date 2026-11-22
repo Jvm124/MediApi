@@ -5,6 +5,7 @@ import MedicoAppointmentCard from '@/components/dashboard/MedicoAppointmentCard'
 import Card from '@/components/ui/Card';
 import Spinner from '@/components/ui/Spinner';
 import { appointmentsApi } from '@/api/appointmentsApi';
+import { useHoraActual } from '@/hooks/useHoraActual';
 import { getErrorMessage } from '@/utils/getErrorMessage';
 import type { MedicoAppointment } from '@/types/appointment.types';
 
@@ -17,7 +18,11 @@ const MedicoDashboardPage = () => {
     const [citas, setCitas] = useState<MedicoAppointment[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    // Si falla «Marcar atendida», el aviso sale encima de la agenda, sin ocultarla como el error de carga.
+    const [errorAlAtender, setErrorAlAtender] = useState('');
     const [atendiendoId, setAtendiendoId] = useState<number | null>(null);
+    // Cada tarjeta mira esta hora para saber si ya llegó la de su consulta.
+    const ahora = useHoraActual();
 
     const cargar = useCallback(async () => {
         setError('');
@@ -36,11 +41,12 @@ const MedicoDashboardPage = () => {
 
     const atender = async (id: number) => {
         setAtendiendoId(id);
+        setErrorAlAtender('');
         try {
             await appointmentsApi.atender(id);
             await cargar();
         } catch (err) {
-            setError(getErrorMessage(err, 'No se pudo marcar como atendida'));
+            setErrorAlAtender(getErrorMessage(err, 'No se pudo marcar como atendida'));
         } finally {
             setAtendiendoId(null);
         }
@@ -49,6 +55,10 @@ const MedicoDashboardPage = () => {
     return (
         <DashboardLayout title="Mi agenda" navItems={nav}>
             <h2 className="text-lg font-semibold mb-4">Tus consultas</h2>
+
+            {errorAlAtender && (
+                <p className="text-red-500 text-sm mb-4" role="alert">{errorAlAtender}</p>
+            )}
 
             {loading ? (
                 <Spinner />
@@ -62,6 +72,7 @@ const MedicoDashboardPage = () => {
                         <MedicoAppointmentCard
                             key={c.id}
                             appointment={c}
+                            ahora={ahora}
                             onAtender={atender}
                             atendiendo={atendiendoId === c.id}
                         />
