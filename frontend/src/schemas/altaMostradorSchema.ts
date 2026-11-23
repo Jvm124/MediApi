@@ -20,8 +20,7 @@ export const altaMostradorSchema = z.object({
         .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, 'Solo se permiten letras y espacios'),
     documento: z.string().regex(/^\d{8}$/, 'El DNI debe tener exactamente 8 dígitos'),
     telefono: z.string().regex(/^9\d{8}$/, 'Debe empezar con 9 y tener 9 dígitos'),
-    // El backend lo deja como opcional, pero la tabla pacientes lo exige (V2: email NOT NULL UNIQUE).
-    // Mientras la tabla no cambie, se pide siempre.
+    // Obligatorio, como en el backend y en la tabla pacientes (V2: email NOT NULL UNIQUE). Ver el ADR 0007.
     email: z.email('Correo inválido').max(100, 'Máximo 100 caracteres'),
     direccion: direccionSchema,
 });

@@ -36,7 +36,7 @@ public class Paciente {
         this.direccion = new Direccion(datos.direccion());
     }
 
-    // Alta por mostrador (staff): sin cuenta web. email puede ser null.
+    // Alta por mostrador (staff): sin cuenta web. El correo también es obligatorio (ADR 0007).
     public Paciente(DatosRegistroPacientePorStaff datos) {
         this.nombre = datos.nombre();
         this.activo = true;

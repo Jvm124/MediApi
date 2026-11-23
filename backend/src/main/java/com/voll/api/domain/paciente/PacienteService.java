@@ -53,7 +53,7 @@ public class PacienteService {
         if (pacienteRepository.existsByDocumento(datos.documento())) {
             throw new ValidacionException("Ya existe un paciente con ese documento");
         }
-        if (datos.email() != null && pacienteRepository.existsByEmail(datos.email())) {
+        if (pacienteRepository.existsByEmail(datos.email())) {
             throw new ValidacionException("Ya existe un paciente con ese email");
         }
 
