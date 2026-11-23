@@ -20,9 +20,11 @@ export const medicosApi = {
         return data;
     },
 
+    // Los médicos activos, por nombre y, si dos se llaman igual, por id (BUG-07). MySQL no promete en qué orden
+    // devuelve los empates, y sin el id uno podría salir en dos páginas y otro en ninguna.
     listar: async (pagina = 0, size = 10): Promise<Page<MedicoLista>> => {
         const { data } = await axiosClient.get<Page<MedicoLista>>('/medicos', {
-            params: { page: pagina, size, sort: 'nombre' },
+            params: { page: pagina, size, sort: 'nombre,id' },
         });
         return data;
     },

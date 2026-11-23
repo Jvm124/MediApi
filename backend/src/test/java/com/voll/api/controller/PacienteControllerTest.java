@@ -16,6 +16,9 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -27,6 +30,7 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -37,7 +41,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * docs/adr/0007-el-correo-del-paciente-es-obligatorio.md, y cierra la duda que dejó BUG-04 en
  * docs/revisiones/0001-revision-inicial.md. Usa la seguridad real (SecurityConfigurations, SecurityFilter,
  * TokenService y los @PreAuthorize del controlador); solo se simulan la base de datos (UsuarioRepository) y
- * PacienteService.
+ * PacienteService. También prueba que la lista de pacientes (GET /pacientes) entiende el orden que pide el
+ * frontend desde BUG-07.
  */
 @WebMvcTest(controllers = PacienteController.class,
         properties = "api.security.token.secret=secreto-solo-para-pruebas")
@@ -91,6 +96,24 @@ class PacienteControllerTest {
                 .andExpect(jsonPath("$.id").value(5));
 
         verify(pacienteService).registrarPorStaff(argThat(datos -> CORREO_PACIENTE.equals(datos.email())));
+    }
+
+    // Como en la lista de médicos (BUG-07): recepción pide los pacientes con sort=nombre,id, por nombre y, si dos
+    // se llaman igual, por id. Spring lo tiene que entender como dos órdenes, en lugar del nombre que pone
+    // @PageableDefault.
+    @Test
+    @DisplayName("sort=nombre,id llega al servicio como dos órdenes: por nombre y luego por id")
+    void listaPorNombreYLuegoPorId() throws Exception {
+        when(pacienteService.listar(any())).thenReturn(Page.empty());
+
+        mvc.perform(get("/pacientes")
+                        .param("page", "1")
+                        .param("size", "10")
+                        .param("sort", "nombre,id")
+                        .header("Authorization", tokenDe(Rol.RECEPCIONISTA)))
+                .andExpect(status().isOk());
+
+        verify(pacienteService).listar(PageRequest.of(1, 10, Sort.by("nombre", "id")));
     }
 
     // Un alta por mostrador con datos de ejemplo, que solo cambia en el correo (null va como null en el JSON).

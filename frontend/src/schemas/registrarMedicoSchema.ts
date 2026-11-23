@@ -16,11 +16,15 @@ export const registrarMedicoSchema = z.object({
     email: z.email('Correo inválido'),
     telefono: z.string().regex(/^9\d{8}$/, 'Empieza en 9, 9 dígitos'),
     documento: z.string().regex(/^\d{8}$/, '8 dígitos'),
-    especialidad: z.enum(['ORTOPEDIA', 'CARDIOLOGIA', 'GINECOLOGIA', 'DERMATOLOGIA'], {
-        error: 'Selecciona especialidad',
-    }),
+    // Como el rol en el alta de usuarios: el select da un texto, y '' es «sin elegir». Al validar, ese texto tiene
+    // que ser una de las especialidades.
+    especialidad: z.string().pipe(
+        z.enum(['ORTOPEDIA', 'CARDIOLOGIA', 'GINECOLOGIA', 'DERMATOLOGIA'], { error: 'Selecciona especialidad' })
+    ),
     contrasenia: contraseniaSegura,
     direccion: direccionSchema,
 });
 
-export type RegistrarMedicoFormData = z.infer<typeof registrarMedicoSchema>;
+// Lo que tiene el formulario mientras se llena (la especialidad es un texto) y lo que sale al validarlo.
+export type RegistrarMedicoFormInput = z.input<typeof registrarMedicoSchema>;
+export type RegistrarMedicoFormData = z.output<typeof registrarMedicoSchema>;
