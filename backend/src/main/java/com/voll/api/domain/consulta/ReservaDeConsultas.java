@@ -11,6 +11,8 @@ import com.voll.api.domain.usuario.Rol;
 import com.voll.api.domain.usuario.Usuario;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.exception.ConstraintViolationException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
@@ -20,6 +22,9 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class ReservaDeConsultas {
+
+    // La regla de V9 (BUG-06): un médico no puede tener dos consultas programadas a la misma hora.
+    private static final String REGLA_UN_MEDICO_POR_HORARIO = "uk_consultas_medico_fecha";
 
     private final MedicoRepository medicoRepository;
     private final PacienteRepository pacienteRepository;
@@ -54,8 +59,35 @@ public class ReservaDeConsultas {
         }
 
         var consulta = new Consulta(medico, paciente, datosNormalizados.fecha());
-        consultaRepository.save(consulta);
+        guardar(consulta);
         return new DatosDetalleConsulta(consulta);
+    }
+
+    // Los validadores ya revisaron que el médico estaba libre, pero otra reserva que llegó al mismo tiempo pudo pasar
+    // la misma revisión. Si esa otra se guardó primero, la base rechaza esta por la regla de V9, y se avisa como en
+    // cualquier otra validación. saveAndFlush manda la consulta a la base aquí mismo, dentro del try, y no al final
+    // de la transacción.
+    private void guardar(Consulta consulta) {
+        try {
+            consultaRepository.saveAndFlush(consulta);
+        } catch (DataIntegrityViolationException e) {
+            if (rompeLaReglaDeUnMedicoPorHorario(e)) {
+                throw new ValidacionException("Ese horario se acaba de ocupar. Vuelve a intentarlo o elige otro.");
+            }
+            throw e; // cualquier otro problema con los datos sigue a TratadorDeErrores, como antes
+        }
+    }
+
+    // Busca entre las causas el error de Hibernate, que trae el nombre de la regla rota. MySQL puede ponerle delante
+    // el nombre de la tabla («consultas.uk_consultas_medico_fecha»), por eso se mira cómo termina.
+    private static boolean rompeLaReglaDeUnMedicoPorHorario(DataIntegrityViolationException e) {
+        for (Throwable causa = e; causa != null; causa = causa.getCause()) {
+            if (causa instanceof ConstraintViolationException violacion) {
+                var regla = violacion.getConstraintName();
+                return regla != null && regla.endsWith(REGLA_UN_MEDICO_POR_HORARIO);
+            }
+        }
+        return false;
     }
 
     public List<DatosDetalleConsulta> listarConsultasDelPaciente(Usuario usuarioLogueado) {
