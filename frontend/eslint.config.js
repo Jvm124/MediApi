@@ -18,5 +18,10 @@ export default defineConfig([
     languageOptions: {
       globals: globals.browser,
     },
+    rules: {
+      // Quitar campos de un objeto con «...resto» no cuenta como variable sin usar: RegisterPage lo hace para
+      // no enviar al servidor la confirmación de la contraseña.
+      '@typescript-eslint/no-unused-vars': ['error', { ignoreRestSiblings: true }],
+    },
   },
 ])
