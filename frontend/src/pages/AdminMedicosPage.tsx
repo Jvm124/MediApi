@@ -7,9 +7,15 @@ import Card from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import Spinner from '@/components/ui/Spinner';
+import Paginacion from '@/components/ui/Paginacion';
 import { medicosApi } from '@/api/medicosApi';
 import { getErrorMessage } from '@/utils/getErrorMessage';
-import { registrarMedicoSchema, type RegistrarMedicoFormData } from '@/schemas/registrarMedicoSchema.ts';
+import {
+    registrarMedicoSchema,
+    type RegistrarMedicoFormInput,
+    type RegistrarMedicoFormData,
+} from '@/schemas/registrarMedicoSchema';
+import type { Page } from '@/types/usuario.types';
 import type { MedicoLista } from '@/types/medico.types';
 
 const nav: NavItem[] = [
@@ -17,9 +23,33 @@ const nav: NavItem[] = [
     { label: 'Médicos', to: '/admin/medicos', icon: Stethoscope },
 ];
 
+// El formulario vacío, con la especialidad sin elegir. Se le pasa a reset() a propósito, como en el alta de
+// usuarios: sin valores, reset() vacía los campos con el form.reset() del navegador, que React no ve, y si luego
+// el navegador autocompleta (o se pega) el mismo valor que en el alta anterior, el formulario lo da por vacío.
+// Pasa, por ejemplo, con la dirección de la clínica.
+const FORMULARIO_VACIO: RegistrarMedicoFormInput = {
+    nombre: '',
+    especialidad: '',
+    email: '',
+    contrasenia: '',
+    telefono: '',
+    documento: '',
+    direccion: { calle: '', numero: '', complemento: '', barrio: '', ciudad: '', codigo_postal: '', estado: '' },
+};
+
+// Pide una página de médicos activos. Si llega vacía y no es la primera, pide la última que queda: pasa al dar de
+// baja al único médico de la última página, porque la lista solo muestra a los activos.
+const pedirPagina = async (pagina: number): Promise<Page<MedicoLista>> => {
+    const page = await medicosApi.listar(pagina);
+    if (page.content.length === 0 && page.number > 0 && page.totalPages > 0) {
+        return medicosApi.listar(page.totalPages - 1);
+    }
+    return page;
+};
+
 const AdminMedicosPage = () => {
-    const [medicos, setMedicos] = useState<MedicoLista[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [medicos, setMedicos] = useState<Page<MedicoLista> | null>(null);
+    const [cargando, setCargando] = useState(true);
     const [listError, setListError] = useState('');
     const [formError, setFormError] = useState('');
     const [formOk, setFormOk] = useState('');
@@ -29,23 +59,36 @@ const AdminMedicosPage = () => {
         handleSubmit,
         reset,
         formState: { errors, isSubmitting },
-    } = useForm<RegistrarMedicoFormData>({ resolver: zodResolver(registrarMedicoSchema) });
+    } = useForm<RegistrarMedicoFormInput, unknown, RegistrarMedicoFormData>({
+        resolver: zodResolver(registrarMedicoSchema),
+        defaultValues: FORMULARIO_VACIO,
+    });
 
-    const cargar = useCallback(async () => {
-        setListError('');
-        try {
-            const page = await medicosApi.listar();
-            setMedicos(page.content);
-        } catch (err) {
-            setListError(getErrorMessage(err, 'No se pudieron cargar los médicos'));
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+    // Pide una página de médicos (BUG-07). Como en el panel de usuarios, el estado solo cambia en los callbacks,
+    // cuando llega la respuesta: así el efecto de abajo no cambia el estado de forma síncrona.
+    const cargar = useCallback(
+        (pagina: number) =>
+            pedirPagina(pagina)
+                .then((page) => {
+                    setMedicos(page);
+                    setListError('');
+                })
+                .catch((err) => setListError(getErrorMessage(err, 'No se pudieron cargar los médicos')))
+                .finally(() => setCargando(false)),
+        []
+    );
 
     useEffect(() => {
-        cargar();
+        cargar(0);
     }, [cargar]);
+
+    const irAPagina = (pagina: number) => {
+        setCargando(true);
+        return cargar(pagina);
+    };
+
+    // Después de un cambio se vuelve a pedir la página que se estaba viendo, no la primera.
+    const recargar = () => irAPagina(medicos?.number ?? 0);
 
     const onSubmit = async (data: RegistrarMedicoFormData) => {
         setFormError('');
@@ -53,18 +96,21 @@ const AdminMedicosPage = () => {
         try {
             await medicosApi.registrar(data);
             setFormOk(`Médico ${data.nombre} registrado`);
-            reset();
-            await cargar();
+            reset(FORMULARIO_VACIO);
+            // El nuevo puede quedar en otra página, porque van por nombre.
+            await recargar();
         } catch (err) {
             setFormError(getErrorMessage(err, 'No se pudo registrar el médico'));
         }
     };
 
+    // Si la baja falla, el aviso sale encima de la lista y la lista se queda.
     const eliminar = async (m: MedicoLista) => {
         if (!window.confirm(`¿Dar de baja a ${m.nombre}?`)) return;
+        setListError('');
         try {
             await medicosApi.eliminar(m.id);
-            await cargar();
+            await recargar();
         } catch (err) {
             setListError(getErrorMessage(err, 'No se pudo dar de baja al médico'));
         }
@@ -80,7 +126,6 @@ const AdminMedicosPage = () => {
                         <div>
                             <select
                                 {...register('especialidad')}
-                                defaultValue=""
                                 className={`input-field ${errors.especialidad ? 'border-red-500' : ''}`}
                             >
                                 <option value="" disabled>Especialidad</option>
@@ -116,16 +161,29 @@ const AdminMedicosPage = () => {
                 </Card>
 
                 <Card className="p-6">
-                    <h2 className="text-lg font-semibold mb-4">Médicos activos</h2>
+                    <div className="flex items-baseline justify-between gap-4 mb-4">
+                        <h2 className="text-lg font-semibold">Médicos activos</h2>
+                        {medicos && (
+                            <span className="text-sm text-gray-500">{medicos.totalElements} en total</span>
+                        )}
+                    </div>
 
-                    {loading ? (
-                        <div className="flex items-center gap-2 text-gray-500 text-sm"><Spinner /> Cargando…</div>
-                    ) : listError ? (
-                        <p className="text-red-500 text-sm">{listError}</p>
-                    ) : medicos.length === 0 ? (
+                    {listError && (
+                        <p className="text-red-500 text-sm mb-4" role="alert">
+                            {listError}
+                        </p>
+                    )}
+
+                    {!medicos ? (
+                        cargando && (
+                            <div className="flex items-center gap-2 text-gray-500 text-sm">
+                                <Spinner /> Cargando…
+                            </div>
+                        )
+                    ) : medicos.content.length === 0 ? (
                         <p className="text-gray-500 text-sm">No hay médicos registrados.</p>
                     ) : (
-                        <>
+                        <div className={cargando ? 'opacity-60' : ''}>
                             <table className="w-full text-sm hidden md:table">
                                 <thead>
                                 <tr className="text-left text-gray-500 border-b border-gray-200">
@@ -136,7 +194,7 @@ const AdminMedicosPage = () => {
                                 </tr>
                                 </thead>
                                 <tbody>
-                                {medicos.map((m) => (
+                                {medicos.content.map((m) => (
                                     <tr key={m.id} className="border-b border-gray-100 last:border-0">
                                         <td className="py-3 pr-4">{m.nombre}</td>
                                         <td className="py-3 pr-4">{m.especialidad}</td>
@@ -152,7 +210,7 @@ const AdminMedicosPage = () => {
                             </table>
 
                             <div className="md:hidden space-y-3">
-                                {medicos.map((m) => (
+                                {medicos.content.map((m) => (
                                     <div key={m.id} className="border border-gray-200 rounded-xl p-4">
                                         <div className="flex items-center justify-between mb-1">
                                             <span className="font-semibold">{m.nombre}</span>
@@ -169,7 +227,14 @@ const AdminMedicosPage = () => {
                                     </div>
                                 ))}
                             </div>
-                        </>
+
+                            <Paginacion
+                                pagina={medicos.number}
+                                totalPaginas={medicos.totalPages}
+                                onCambiar={irAPagina}
+                                deshabilitada={cargando}
+                            />
+                        </div>
                     )}
                 </Card>
             </div>
