@@ -1,10 +1,13 @@
+import type { Rol } from '@/types/usuario.types';
+
 export interface User {
     id: number;
     nombreCompleto: string;
     correo: string;
     dni: string;
     telefono: string;
-    rol: 'PACIENTE' | 'MEDICO' | 'ADMINISTRADOR';   // ← era 'ADMIN'
+    // La misma lista de roles que el resto del frontend. Antes aquí había otra, sin RECEPCIONISTA (BUG-04).
+    rol: Rol;
 }
 
 export interface LoginRequest {

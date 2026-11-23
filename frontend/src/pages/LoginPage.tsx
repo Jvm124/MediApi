@@ -8,14 +8,16 @@ import Button from '@/components/ui/Button';
 import { useAuth } from '@/hooks/useAuth';
 import { loginSchema, type LoginFormData } from '@/schemas/loginSchema';
 import { getErrorMessage } from '@/utils/getErrorMessage';
+import type { Rol } from '@/types/usuario.types';
 
-// Mapa: a qué ruta va cada rol después de iniciar sesión.
-// Si mañana agregas un rol nuevo, solo lo añades aquí.
-const RUTA_POR_ROL = {
+// A qué ruta va cada rol después de iniciar sesión. Record<Rol, string> obliga a dar una ruta a cada rol:
+// si mañana se agrega uno en usuario.types.ts y falta aquí, el build falla (BUG-04).
+const RUTA_POR_ROL: Record<Rol, string> = {
     PACIENTE: '/paciente',
     MEDICO: '/medico',
     ADMINISTRADOR: '/admin',
-} as const;
+    RECEPCIONISTA: '/recepcion',
+};
 
 const LoginPage = () => {
     const navigate = useNavigate();
@@ -35,9 +37,9 @@ const LoginPage = () => {
             // login ahora devuelve el usuario, así podemos leer su rol.
             const usuario = await login(data);
 
-            // Redirigimos según el rol. Si por alguna razón el rol no está en el
-            // mapa, lo mandamos al login de nuevo por seguridad.
-            const destino = RUTA_POR_ROL[usuario.rol] ?? '/login';
+            // Redirigimos según el rol. Si el backend manda un rol que este frontend todavía no conoce, va a la
+            // página 403, que al menos avisa; antes volvía al login sin ningún mensaje.
+            const destino = RUTA_POR_ROL[usuario.rol] ?? '/no-autorizado';
             navigate(destino);
         } catch (err) {
             setServerError(getErrorMessage(err, 'Credenciales inválidas'));
