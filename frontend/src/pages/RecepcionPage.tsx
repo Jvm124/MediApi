@@ -30,9 +30,14 @@ const FORMULARIO_VACIO: AltaMostradorFormData = {
 
 // Lo que recepción puede hacer con cada paciente de la lista.
 const AccionesDelPaciente = ({ id }: { id: number }) => (
-    <Link to={`/recepcion/reservar/${id}`} className="text-sm font-medium text-primary hover:underline">
-        Reservar
-    </Link>
+    <div className="flex justify-end gap-4 whitespace-nowrap">
+        <Link to={`/recepcion/reservar/${id}`} className="text-sm font-medium text-primary hover:underline">
+            Reservar
+        </Link>
+        <Link to={`/recepcion/consultas/${id}`} className="text-sm font-medium text-primary hover:underline">
+            Ver consultas
+        </Link>
+    </div>
 );
 
 // Panel de recepción (BUG-04): la lista de pacientes y el alta por mostrador.
@@ -125,7 +130,7 @@ const RecepcionPage = () => {
                                     <th className="py-2 pr-4 font-medium">Nombre</th>
                                     <th className="py-2 pr-4 font-medium">Correo</th>
                                     <th className="py-2 pr-4 font-medium">Teléfono</th>
-                                    <th className="py-2 text-right font-medium">Acción</th>
+                                    <th className="py-2 text-right font-medium">Acciones</th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -148,7 +153,7 @@ const RecepcionPage = () => {
                                         <p className="font-semibold">{p.nombre}</p>
                                         <p className="text-sm text-gray-500 break-all">{p.email}</p>
                                         <p className="text-sm text-gray-500">{p.telefono}</p>
-                                        <div className="text-right mt-2">
+                                        <div className="mt-2">
                                             <AccionesDelPaciente id={p.id} />
                                         </div>
                                     </div>

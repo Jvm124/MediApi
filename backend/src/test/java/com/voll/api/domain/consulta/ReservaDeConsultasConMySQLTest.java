@@ -42,7 +42,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * Prueba la reserva de consultas contra un MySQL real. Testcontainers lo arranca en Docker, Flyway aplica
  * las migraciones y al terminar se descarta, así que tu base vollmed_api no se toca. Cubre BUG-01 de
  * docs/revisiones/0001-revision-inicial.md: una hora cancelada se puede volver a reservar con el mismo médico.
- * Y BUG-05: a un médico con la cuenta de baja no se le puede reservar, y al reincorporarlo sí.
+ * Y BUG-05: a un médico con la cuenta de baja no se le puede reservar, y al reincorporarlo sí. Y el paso 3 de
+ * BUG-04: recepción ve las consultas programadas de un paciente, en orden de fecha y sin las canceladas.
  */
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -179,12 +180,32 @@ class ReservaDeConsultasConMySQLTest {
         assertThat(consulta.idMedico()).isEqualTo(idMedico);
     }
 
+    @Test
+    @DisplayName("Recepción ve las consultas programadas de un paciente, de la más próxima a la más lejana (BUG-04)")
+    void consultasProgramadasDeUnPaciente() {
+        var medico = registrarMedico();
+        var paciente = registrarPaciente(1);
+        // Cada una en otro día: un paciente no puede tener dos consultas de la misma especialidad el mismo día.
+        var delMartes = reservarCon(medico.getId(), paciente, LUNES_A_LAS_10.plusDays(1));
+        var delLunes = reservarCon(medico.getId(), paciente, LUNES_A_LAS_10);
+        cancelar(reservarCon(medico.getId(), paciente, LUNES_A_LAS_10.plusDays(2)));
+        reservarCon(medico.getId(), registrarPaciente(2), LUNES_A_LAS_10.plusDays(3)); // la de otro paciente
+
+        var consultas = reserva.listarConsultasDeUnPaciente(paciente.getId());
+
+        assertThat(consultas).extracting(DatosDetalleConsulta::id).containsExactly(delLunes.id(), delMartes.id());
+    }
+
     private DatosDetalleConsulta reservarCon(Medico medico, Paciente paciente) {
         return reservarCon(medico.getId(), paciente);
     }
 
     private DatosDetalleConsulta reservarCon(Long idMedico, Paciente paciente) {
-        var datos = new DatosReservaConsulta(idMedico, paciente.getId(), LUNES_A_LAS_10, null);
+        return reservarCon(idMedico, paciente, LUNES_A_LAS_10);
+    }
+
+    private DatosDetalleConsulta reservarCon(Long idMedico, Paciente paciente, LocalDateTime fecha) {
+        var datos = new DatosReservaConsulta(idMedico, paciente.getId(), fecha, null);
         return reserva.reservar(datos, RECEPCIONISTA);
     }
 

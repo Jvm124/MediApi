@@ -36,6 +36,14 @@ public class ConsultaController {
         return ResponseEntity.ok(reserva.listarConsultasDelPaciente(usuarioLogueado));
     }
 
+    // Las consultas programadas de un paciente, para verlas y cancelarlas desde recepción (BUG-04). El paciente ve
+    // las suyas en /me.
+    @GetMapping("/paciente/{idPaciente}")
+    @PreAuthorize("hasAnyRole('RECEPCIONISTA', 'ADMINISTRADOR')")
+    public ResponseEntity<List<DatosDetalleConsulta>> listarConsultasDeUnPaciente(@PathVariable Long idPaciente) {
+        return ResponseEntity.ok(reserva.listarConsultasDeUnPaciente(idPaciente));
+    }
+
     // Agenda del médico: sus consultas programadas (ve al PACIENTE, no a sí mismo).
     @GetMapping("/medico")
     @PreAuthorize("hasRole('MEDICO')")

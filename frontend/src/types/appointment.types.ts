@@ -1,5 +1,8 @@
 export type EstadoConsulta = 'PROGRAMADA' | 'CANCELADA' | 'ATENDIDA';
 
+// Por qué se cancela una consulta: MotivoCancelamiento del backend.
+export type MotivoCancelamiento = 'PACIENTE_DESISTIO' | 'MEDICO_CANCELO' | 'OTROS';
+
 // Vista del PACIENTE: le importa quién es su médico.
 export interface Appointment {
     id: number;

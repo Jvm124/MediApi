@@ -95,8 +95,23 @@ public class ReservaDeConsultas {
         if (paciente == null) {
             throw new ValidacionException("Tu cuenta no tiene un registro de paciente asociado");
         }
+        return programadasDelPaciente(paciente.getId());
+    }
+
+    // Las consultas programadas de cualquier paciente, para recepción y el administrador (BUG-04). Solo revisa que
+    // el paciente exista, no que esté activo: así también se ven las que le queden a uno dado de baja (ver el debate
+    // en docs/ideas/ideas-y-debates.md).
+    public List<DatosDetalleConsulta> listarConsultasDeUnPaciente(Long idPaciente) {
+        if (!pacienteRepository.existsById(idPaciente)) {
+            throw new ValidacionException("No existe un paciente con el id informado");
+        }
+        return programadasDelPaciente(idPaciente);
+    }
+
+    // De la más próxima a la más lejana. Las canceladas y las atendidas no salen.
+    private List<DatosDetalleConsulta> programadasDelPaciente(Long idPaciente) {
         return consultaRepository
-                .buscarProgramadasDelPaciente(paciente.getId(), EstadoConsulta.PROGRAMADA)
+                .buscarProgramadasDelPaciente(idPaciente, EstadoConsulta.PROGRAMADA)
                 .stream()
                 .map(DatosDetalleConsulta::new)
                 .toList();

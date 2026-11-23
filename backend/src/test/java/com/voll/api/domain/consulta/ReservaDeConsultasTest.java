@@ -198,6 +198,32 @@ class ReservaDeConsultasTest {
                 .isSameAs(otroError);
     }
 
+    // ----- Ver las consultas de un paciente (recepción y administrador) -----
+
+    @Test
+    @DisplayName("Recepción ve las consultas programadas de un paciente, con su médico (BUG-04)")
+    void recepcionVeLasConsultasDeUnPaciente() {
+        when(pacienteRepository.existsById(2L)).thenReturn(true);
+        when(consultaRepository.buscarProgramadasDelPaciente(2L, EstadoConsulta.PROGRAMADA))
+                .thenReturn(List.of(consultaProgramada(medico(1L), paciente(2L))));
+
+        var consultas = reserva.listarConsultasDeUnPaciente(2L);
+
+        assertThat(consultas).containsExactly(new DatosDetalleConsulta(10L, 1L, "Dra. Ana Torres",
+                Especialidad.CARDIOLOGIA, 2L, LUNES_A_LAS_10, EstadoConsulta.PROGRAMADA));
+    }
+
+    @Test
+    @DisplayName("Con un paciente que no existe, avisa y no busca consultas")
+    void conUnPacienteQueNoExisteAvisa() {
+        when(pacienteRepository.existsById(99L)).thenReturn(false);
+
+        assertThatThrownBy(() -> reserva.listarConsultasDeUnPaciente(99L))
+                .isInstanceOf(ValidacionException.class)
+                .hasMessage("No existe un paciente con el id informado");
+        verifyNoInteractions(consultaRepository);
+    }
+
     // ----- Cancelar -----
 
     @Test

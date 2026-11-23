@@ -38,7 +38,7 @@ Aquí queda lo que conversamos y evaluamos. Cuando una idea se vuelve decisión,
 
 ### Por debatir — ¿Qué pasa con las consultas programadas de quien se suspende o se da de baja?
 
-- **Hoy:** desde BUG-05, suspender o dar de baja a un médico o a un paciente desactiva su ficha, así que no recibe reservas nuevas ([ADR 0006](../adr/0006-la-ficha-sigue-a-la-cuenta.md)). Pero sus consultas ya programadas siguen ahí, y un médico suspendido no puede entrar a atenderlas.
+- **Hoy:** desde BUG-05, suspender o dar de baja a un médico o a un paciente desactiva su ficha, así que no recibe reservas nuevas ([ADR 0006](../adr/0006-la-ficha-sigue-a-la-cuenta.md)). Pero sus consultas ya programadas siguen ahí, y un médico suspendido no puede entrar a atenderlas. Desde BUG-04, `GET /consultas/paciente/{id}` también devuelve las de un paciente dado de baja, aunque el panel de recepción solo muestra a los pacientes activos.
 - **Opciones:** cancelarlas solas, con un motivo como `MEDICO_CANCELO` o `PACIENTE_DESISTIO`; mostrárselas al administrador para que las reasigne o las cancele; o dejarlas como están.
 - **A decidir** antes de usar la app con pacientes reales.
 
