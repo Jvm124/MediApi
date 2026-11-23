@@ -7,11 +7,16 @@ import Card from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import Spinner from '@/components/ui/Spinner';
+import Paginacion from '@/components/ui/Paginacion';
 import { useAuth } from '@/hooks/useAuth';
 import { usuariosApi } from '@/api/usuariosApi';
 import { getErrorMessage } from '@/utils/getErrorMessage';
-import { registrarUsuarioSchema, type RegistrarUsuarioFormData } from '@/schemas/registrarUsuarioSchema';
-import type { UsuarioLista, EstadoUsuario } from '@/types/usuario.types';
+import {
+    registrarUsuarioSchema,
+    type RegistrarUsuarioFormInput,
+    type RegistrarUsuarioFormData,
+} from '@/schemas/registrarUsuarioSchema';
+import type { UsuarioLista, EstadoUsuario, Page } from '@/types/usuario.types';
 
 const nav: NavItem[] = [
     { label: 'Usuarios', to: '/admin', icon: Users },
@@ -42,11 +47,16 @@ const AccionLink = ({ label, color, onClick }: { label: string; color: string; o
     </button>
 );
 
+// El formulario vacío, con el rol sin elegir. Se le pasa a reset() a propósito, como en recepción: sin valores,
+// reset() vacía los campos con el form.reset() del navegador, que React no ve, y si luego se pega la misma
+// contraseña que en el alta anterior, el formulario la da por vacía.
+const FORMULARIO_VACIO: RegistrarUsuarioFormInput = { correo: '', contrasenia: '', rol: '' };
+
 const AdminDashboardPage = () => {
     const { user } = useAuth();
 
-    const [usuarios, setUsuarios] = useState<UsuarioLista[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [usuarios, setUsuarios] = useState<Page<UsuarioLista> | null>(null);
+    const [cargando, setCargando] = useState(true);
     const [listError, setListError] = useState('');
     const [formError, setFormError] = useState('');
     const [formOk, setFormOk] = useState('');
@@ -56,24 +66,37 @@ const AdminDashboardPage = () => {
         handleSubmit,
         reset,
         formState: { errors, isSubmitting },
-    } = useForm<RegistrarUsuarioFormData>({ resolver: zodResolver(registrarUsuarioSchema) });
+    } = useForm<RegistrarUsuarioFormInput, unknown, RegistrarUsuarioFormData>({
+        resolver: zodResolver(registrarUsuarioSchema),
+        defaultValues: FORMULARIO_VACIO,
+    });
 
-    const cargar = useCallback(async () => {
-        setListError('');
-        try {
-            const page = await usuariosApi.listar();
-            setUsuarios(page.content);
-        } catch (err) {
-            setListError(getErrorMessage(err, 'No se pudieron cargar los usuarios'));
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+    // Pide una página de usuarios (BUG-07). Como en RecepcionPage, el estado solo cambia en los callbacks, cuando
+    // llega la respuesta: así el efecto de abajo no cambia el estado de forma síncrona.
+    const cargar = useCallback(
+        (pagina: number) =>
+            usuariosApi
+                .listar(pagina)
+                .then((page) => {
+                    setUsuarios(page);
+                    setListError('');
+                })
+                .catch((err) => setListError(getErrorMessage(err, 'No se pudieron cargar los usuarios')))
+                .finally(() => setCargando(false)),
+        []
+    );
 
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        cargar();
+        cargar(0);
     }, [cargar]);
+
+    const irAPagina = (pagina: number) => {
+        setCargando(true);
+        return cargar(pagina);
+    };
+
+    // Después de un cambio se vuelve a pedir la página que se estaba viendo, no la primera.
+    const recargar = () => irAPagina(usuarios?.number ?? 0);
 
     const onSubmit = async (data: RegistrarUsuarioFormData) => {
         setFormError('');
@@ -81,18 +104,20 @@ const AdminDashboardPage = () => {
         try {
             await usuariosApi.registrar(data);
             setFormOk(`Usuario ${data.correo} creado`);
-            reset();
-            await cargar();
+            reset(FORMULARIO_VACIO);
+            // El nuevo puede quedar en otra página, porque van por correo.
+            await recargar();
         } catch (err) {
             setFormError(getErrorMessage(err, 'No se pudo crear el usuario'));
         }
     };
 
+    // Si la acción falla, el aviso sale encima de la lista y la lista se queda.
     const ejecutar = async (accion: () => Promise<void>, errorMsg: string) => {
         setListError('');
         try {
             await accion();
-            await cargar();
+            await recargar();
         } catch (err) {
             setListError(getErrorMessage(err, errorMsg));
         }
@@ -165,7 +190,6 @@ const AdminDashboardPage = () => {
                         <div>
                             <select
                                 {...register('rol')}
-                                defaultValue=""
                                 className={`input-field ${errors.rol ? 'border-red-500' : ''}`}
                             >
                                 <option value="" disabled>
@@ -187,18 +211,29 @@ const AdminDashboardPage = () => {
                 </Card>
 
                 <Card className="p-6 lg:col-span-2">
-                    <h2 className="text-lg font-semibold mb-4">Usuarios</h2>
+                    <div className="flex items-baseline justify-between gap-4 mb-4">
+                        <h2 className="text-lg font-semibold">Usuarios</h2>
+                        {usuarios && (
+                            <span className="text-sm text-gray-500">{usuarios.totalElements} en total</span>
+                        )}
+                    </div>
 
-                    {loading ? (
-                        <div className="flex items-center gap-2 text-gray-500 text-sm">
-                            <Spinner /> Cargando…
-                        </div>
-                    ) : listError ? (
-                        <p className="text-red-500 text-sm">{listError}</p>
-                    ) : usuarios.length === 0 ? (
+                    {listError && (
+                        <p className="text-red-500 text-sm mb-4" role="alert">
+                            {listError}
+                        </p>
+                    )}
+
+                    {!usuarios ? (
+                        cargando && (
+                            <div className="flex items-center gap-2 text-gray-500 text-sm">
+                                <Spinner /> Cargando…
+                            </div>
+                        )
+                    ) : usuarios.content.length === 0 ? (
                         <p className="text-gray-500 text-sm">No hay usuarios.</p>
                     ) : (
-                        <>
+                        <div className={cargando ? 'opacity-60' : ''}>
                             <table className="w-full text-sm hidden md:table">
                                 <thead>
                                 <tr className="text-left text-gray-500 border-b border-gray-200">
@@ -209,7 +244,7 @@ const AdminDashboardPage = () => {
                                 </tr>
                                 </thead>
                                 <tbody>
-                                {usuarios.map((u) => (
+                                {usuarios.content.map((u) => (
                                     <tr key={u.id} className="border-b border-gray-100 last:border-0">
                                         <td className="py-3 pr-4">{u.correo}</td>
                                         <td className="py-3 pr-4">{u.rol}</td>
@@ -225,7 +260,7 @@ const AdminDashboardPage = () => {
                             </table>
 
                             <div className="md:hidden space-y-3">
-                                {usuarios.map((u) => (
+                                {usuarios.content.map((u) => (
                                     <div key={u.id} className="border border-gray-200 rounded-xl p-4">
                                         <div className="flex items-center justify-between mb-1">
                                             <span className="font-semibold break-all">{u.correo}</span>
@@ -238,7 +273,14 @@ const AdminDashboardPage = () => {
                                     </div>
                                 ))}
                             </div>
-                        </>
+
+                            <Paginacion
+                                pagina={usuarios.number}
+                                totalPaginas={usuarios.totalPages}
+                                onCambiar={irAPagina}
+                                deshabilitada={cargando}
+                            />
+                        </div>
                     )}
                 </Card>
             </div>
