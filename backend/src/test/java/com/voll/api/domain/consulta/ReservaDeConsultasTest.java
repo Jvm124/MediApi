@@ -10,13 +10,16 @@ import com.voll.api.domain.paciente.Paciente;
 import com.voll.api.domain.paciente.PacienteRepository;
 import com.voll.api.domain.usuario.Rol;
 import com.voll.api.domain.usuario.Usuario;
+import org.hibernate.exception.ConstraintViolationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -36,8 +39,8 @@ import static org.mockito.Mockito.when;
  * Prueba las reglas de ReservaDeConsultas sin Spring ni base de datos: los repositorios y los validadores son
  * simulados con Mockito, y la hora de la clínica es un reloj parado (Clock.fixed). Así se prueba solo lo que decide
  * esta clase: a nombre de quién se reserva, qué médico se elige, quién puede cancelar una consulta, quién y desde
- * qué hora puede atenderla y qué pasa cuando un validador dice que no. Lo que depende de las consultas a MySQL lo
- * prueba ReservaDeConsultasConMySQLTest.
+ * qué hora puede atenderla y qué pasa cuando un validador o la base dicen que no. Lo que depende de las consultas a
+ * MySQL lo prueba ReservaDeConsultasConMySQLTest, y dos reservas que llegan a la vez, DobleReservaConMySQLTest.
  */
 @ExtendWith(MockitoExtension.class)
 class ReservaDeConsultasTest {
@@ -88,7 +91,7 @@ class ReservaDeConsultasTest {
         assertThat(detalle.estado()).isEqualTo(EstadoConsulta.PROGRAMADA);
         // Los validadores revisan los datos con su paciente (el 2), no con el 99.
         verify(validador).validar(new DatosReservaConsulta(1L, 2L, LUNES_A_LAS_10, null));
-        verify(consultaRepository).save(any(Consulta.class));
+        verify(consultaRepository).saveAndFlush(any(Consulta.class));
         verifyNoInteractions(pacienteRepository);
     }
 
@@ -99,7 +102,7 @@ class ReservaDeConsultasTest {
                 new DatosReservaConsulta(1L, null, LUNES_A_LAS_10, null), usuarioPaciente(null)))
                 .isInstanceOf(ValidacionException.class)
                 .hasMessageContaining("no tiene un registro de paciente");
-        verify(consultaRepository, never()).save(any());
+        verify(consultaRepository, never()).saveAndFlush(any());
     }
 
     @Test
@@ -113,7 +116,7 @@ class ReservaDeConsultasTest {
                 .isInstanceOf(ValidacionException.class)
                 .hasMessageContaining("No existe un médico con el id informado");
         verifyNoInteractions(validador);
-        verify(consultaRepository, never()).save(any());
+        verify(consultaRepository, never()).saveAndFlush(any());
     }
 
     @Test
@@ -127,7 +130,7 @@ class ReservaDeConsultasTest {
                 new DatosReservaConsulta(1L, null, LUNES_A_LAS_10, null), usuarioPaciente(paciente(2L))))
                 .isInstanceOf(ValidacionException.class)
                 .hasMessageContaining("fuera del horario");
-        verify(consultaRepository, never()).save(any());
+        verify(consultaRepository, never()).saveAndFlush(any());
     }
 
     @Test
@@ -140,7 +143,7 @@ class ReservaDeConsultasTest {
                 usuarioPaciente(paciente(2L)));
 
         assertThat(detalle.idMedico()).isEqualTo(5L);
-        verify(consultaRepository).save(any(Consulta.class));
+        verify(consultaRepository).saveAndFlush(any(Consulta.class));
     }
 
     @Test
@@ -154,7 +157,7 @@ class ReservaDeConsultasTest {
                 usuarioPaciente(paciente(2L))))
                 .isInstanceOf(ValidacionException.class)
                 .hasMessageContaining("No existe un médico disponible");
-        verify(consultaRepository, never()).save(any());
+        verify(consultaRepository, never()).saveAndFlush(any());
     }
 
     @Test
@@ -164,7 +167,35 @@ class ReservaDeConsultasTest {
                 new DatosReservaConsulta(null, null, LUNES_A_LAS_10, null), usuarioPaciente(paciente(2L))))
                 .isInstanceOf(ValidacionException.class)
                 .hasMessageContaining("Es necesario elegir una especialidad");
-        verify(consultaRepository, never()).save(any());
+        verify(consultaRepository, never()).saveAndFlush(any());
+    }
+
+    @Test
+    @DisplayName("Si la base la rechaza porque el horario se acaba de ocupar, avisa como una validación (BUG-06)")
+    void siLaBaseLaRechazaPorElHorarioAvisa() {
+        when(medicoRepository.existsById(1L)).thenReturn(true);
+        when(medicoRepository.getReferenceById(1L)).thenReturn(medico(1L));
+        // Así lo nombra MySQL, con la tabla delante.
+        when(consultaRepository.saveAndFlush(any(Consulta.class)))
+                .thenThrow(choqueConLaRegla("consultas.uk_consultas_medico_fecha"));
+
+        assertThatThrownBy(() -> reserva.reservar(
+                new DatosReservaConsulta(1L, null, LUNES_A_LAS_10, null), usuarioPaciente(paciente(2L))))
+                .isInstanceOf(ValidacionException.class)
+                .hasMessage("Ese horario se acaba de ocupar. Vuelve a intentarlo o elige otro.");
+    }
+
+    @Test
+    @DisplayName("Si la base la rechaza por otra regla, el error sigue igual hasta TratadorDeErrores")
+    void otroErrorDeLaBaseSigueSuCamino() {
+        when(medicoRepository.existsById(1L)).thenReturn(true);
+        when(medicoRepository.getReferenceById(1L)).thenReturn(medico(1L));
+        var otroError = choqueConLaRegla("fk_consultas_paciente_id");
+        when(consultaRepository.saveAndFlush(any(Consulta.class))).thenThrow(otroError);
+
+        assertThatThrownBy(() -> reserva.reservar(
+                new DatosReservaConsulta(1L, null, LUNES_A_LAS_10, null), usuarioPaciente(paciente(2L))))
+                .isSameAs(otroError);
     }
 
     // ----- Cancelar -----
@@ -315,5 +346,13 @@ class ReservaDeConsultasTest {
 
     private static Usuario recepcionista() {
         return new Usuario("recepcion@ejemplo.com", "sin-uso", Rol.RECEPCIONISTA);
+    }
+
+    // Lo que llega cuando la base rechaza la consulta por la regla con ese nombre: el error de Spring envuelve el de
+    // Hibernate, que trae el nombre de la regla, y ese envuelve el de MySQL.
+    private static DataIntegrityViolationException choqueConLaRegla(String regla) {
+        var deMySQL = new SQLIntegrityConstraintViolationException("La consulta rompe la regla " + regla);
+        return new DataIntegrityViolationException("could not execute statement",
+                new ConstraintViolationException("could not execute statement", deMySQL, regla));
     }
 }
