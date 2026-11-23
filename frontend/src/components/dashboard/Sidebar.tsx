@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Menu, Calendar, FileText, LogOut } from 'lucide-react';
+import { Menu, Calendar, LogOut } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Sidebar = () => {
     const [open, setOpen] = useState(false);
@@ -26,8 +26,9 @@ const Sidebar = () => {
                     </button>
 
                     <nav className="flex-1 space-y-4">
-                        <a href="#" className="flex items-center gap-3"><Calendar size={20} /> Reservar cita</a>
-                        <a href="#" className="flex items-center gap-3"><FileText size={20} /> Mis documentos</a>
+                        <Link to="/reservar" className="flex items-center gap-3">
+                            <Calendar size={20} /> Reservar cita
+                        </Link>
                     </nav>
 
                     <button onClick={handleLogout} className="flex items-center gap-3 mt-auto">
