@@ -2,6 +2,7 @@ import axiosClient from './axiosClient';
 import type { UsuarioLista, NuevoUsuarioRequest, Page } from '@/types/usuario.types';
 
 export const usuariosApi = {
+    // Por correo. No hace falta desempatar por id, como en médicos y pacientes: el correo no se repite (V3).
     listar: async (pagina = 0, size = 10): Promise<Page<UsuarioLista>> => {
         const { data } = await axiosClient.get<Page<UsuarioLista>>('/usuarios', {
             params: { page: pagina, size, sort: 'correo' },
