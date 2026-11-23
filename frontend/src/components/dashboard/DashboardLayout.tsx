@@ -36,8 +36,8 @@ const DashboardLayout = ({ title, navItems, children }: Props) => {
     const inner = (
         <div className="flex flex-col h-full">
             <div className="flex items-center gap-2 font-extrabold text-lg mb-6 px-1">
-                <span className="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center">V</span>
-                Voll.med
+                <span className="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center">M</span>
+                MediApi
             </div>
 
             <nav className="flex-1 space-y-1">

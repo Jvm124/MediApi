@@ -52,8 +52,8 @@ const LoginPage = () => {
                 <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
                     <div className="flex justify-center mb-4">
                         <div className="text-center">
-                            <p className="text-secondary font-bold text-2xl">HEALTHCARE</p>
-                            <p className="text-xs text-gray-500">Medical Care</p>
+                            <p className="text-secondary font-bold text-2xl">MediApi</p>
+                            <p className="text-xs text-gray-500">Citas médicas</p>
                         </div>
                     </div>
                     <p className="text-center text-gray-500 mb-6">

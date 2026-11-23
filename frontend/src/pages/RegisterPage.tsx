@@ -61,7 +61,7 @@ const RegisterPage = () => {
                             <input type="checkbox" id="terms" {...register('acceptTerms')} className="mt-1" />
                             <label htmlFor="terms">
                                 He leído y acepto los{' '}
-                                <a href="/terms" className="text-primary underline">Términos y Condiciones</a> de MediApp
+                                <a href="/terms" className="text-primary underline">Términos y Condiciones</a> de MediApi
                             </label>
                         </div>
                         {errors.acceptTerms && (
