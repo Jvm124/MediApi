@@ -8,6 +8,15 @@ export interface PacienteLista {
     telefono: string;
 }
 
+// Coincide con DatosDetallePaciente del backend (GET /pacientes/{id}), sin la dirección, que aquí no se usa.
+export interface PacienteDetalle {
+    id: number;
+    nombre: string;
+    email: string;
+    telefono: string;
+    documento: string;
+}
+
 // Lo que enviamos a POST /pacientes/registro-staff (DatosRegistroPacientePorStaff): el alta por mostrador,
 // que crea la ficha del paciente sin cuenta web.
 export interface NuevoPacienteMostradorRequest {

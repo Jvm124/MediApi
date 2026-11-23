@@ -73,8 +73,9 @@ public class MedicoController {
         return ResponseEntity.ok(medico);
     }
 
+    // Los médicos que se pueden elegir al reservar. RECEPCIONISTA también reserva, para un paciente (BUG-04).
     @GetMapping("/disponibles")
-    @PreAuthorize("hasRole('PACIENTE')")
+    @PreAuthorize("hasAnyRole('PACIENTE', 'RECEPCIONISTA')")
     public ResponseEntity<List<DatosMedicoSelect>> listarParaSelect() {
         return ResponseEntity.ok(medicoService.listarDisponibles());
     }

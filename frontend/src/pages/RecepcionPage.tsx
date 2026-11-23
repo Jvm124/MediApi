@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Users } from 'lucide-react';
@@ -26,6 +27,13 @@ const FORMULARIO_VACIO: AltaMostradorFormData = {
     email: '',
     direccion: { calle: '', numero: '', complemento: '', barrio: '', ciudad: '', codigo_postal: '', estado: '' },
 };
+
+// Lo que recepción puede hacer con cada paciente de la lista.
+const AccionesDelPaciente = ({ id }: { id: number }) => (
+    <Link to={`/recepcion/reservar/${id}`} className="text-sm font-medium text-primary hover:underline">
+        Reservar
+    </Link>
+);
 
 // Panel de recepción (BUG-04): la lista de pacientes y el alta por mostrador.
 const RecepcionPage = () => {
@@ -116,7 +124,8 @@ const RecepcionPage = () => {
                                 <tr className="text-left text-gray-500 border-b border-gray-200">
                                     <th className="py-2 pr-4 font-medium">Nombre</th>
                                     <th className="py-2 pr-4 font-medium">Correo</th>
-                                    <th className="py-2 font-medium">Teléfono</th>
+                                    <th className="py-2 pr-4 font-medium">Teléfono</th>
+                                    <th className="py-2 text-right font-medium">Acción</th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -124,7 +133,10 @@ const RecepcionPage = () => {
                                     <tr key={p.id} className="border-b border-gray-100 last:border-0">
                                         <td className="py-3 pr-4">{p.nombre}</td>
                                         <td className="py-3 pr-4 break-all">{p.email}</td>
-                                        <td className="py-3">{p.telefono}</td>
+                                        <td className="py-3 pr-4">{p.telefono}</td>
+                                        <td className="py-3 text-right">
+                                            <AccionesDelPaciente id={p.id} />
+                                        </td>
                                     </tr>
                                 ))}
                                 </tbody>
@@ -136,6 +148,9 @@ const RecepcionPage = () => {
                                         <p className="font-semibold">{p.nombre}</p>
                                         <p className="text-sm text-gray-500 break-all">{p.email}</p>
                                         <p className="text-sm text-gray-500">{p.telefono}</p>
+                                        <div className="text-right mt-2">
+                                            <AccionesDelPaciente id={p.id} />
+                                        </div>
                                     </div>
                                 ))}
                             </div>

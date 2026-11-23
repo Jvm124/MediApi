@@ -1,6 +1,6 @@
 import axiosClient from './axiosClient';
 import type { Page } from '@/types/usuario.types';
-import type { PacienteLista, NuevoPacienteMostradorRequest } from '@/types/paciente.types';
+import type { PacienteLista, PacienteDetalle, NuevoPacienteMostradorRequest } from '@/types/paciente.types';
 
 export const pacientesApi = {
     // Los pacientes activos, por nombre. La página empieza en 0, como en Spring.
@@ -8,6 +8,12 @@ export const pacientesApi = {
         const { data } = await axiosClient.get<Page<PacienteLista>>('/pacientes', {
             params: { page: pagina, size, sort: 'nombre' },
         });
+        return data;
+    },
+
+    // La ficha de un paciente activo.
+    detallar: async (id: number): Promise<PacienteDetalle> => {
+        const { data } = await axiosClient.get<PacienteDetalle>(`/pacientes/${id}`);
         return data;
     },
 

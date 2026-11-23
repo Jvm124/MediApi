@@ -12,6 +12,7 @@ import ReservarCitaPage from '@/pages/ReservarCitaPage';
 import AdminMedicosPage from '@/pages/AdminMedicosPage';
 import MedicoPerfilPage from "@/pages/MedicoPerfilPage.tsx";
 import RecepcionPage from '@/pages/RecepcionPage';
+import RecepcionReservarPage from '@/pages/RecepcionReservarPage';
 
 const AppRoutes = () => {
     return (
@@ -43,6 +44,7 @@ const AppRoutes = () => {
             {/* Solo RECEPCIONISTA */}
             <Route element={<ProtectedRoute allowedRoles={['RECEPCIONISTA']} />}>
                 <Route path="/recepcion" element={<RecepcionPage />} />
+                <Route path="/recepcion/reservar/:idPaciente" element={<RecepcionReservarPage />} />
             </Route>
 
             {/* Cualquier otra URL → 404 */}

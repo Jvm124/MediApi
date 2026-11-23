@@ -25,6 +25,8 @@ export interface MedicoAppointment {
 export interface NewAppointmentRequest {
     idMedico: number;
     fecha: string;
+    // Solo cuando reserva recepción. El paciente no lo manda: el backend usa su propia ficha.
+    idPaciente?: number;
 }
 
 export interface NewsItem {
