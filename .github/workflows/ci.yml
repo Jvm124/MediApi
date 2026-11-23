@@ -34,6 +34,8 @@ jobs:
       - run: ./mvnw -B test
 
   frontend:
+    # Hace el lint y el build, pero se sigue llamando «Frontend (build)»: el ruleset de main exige este check por
+    # su nombre, y con otro los PR se quedarían esperándolo.
     name: Frontend (build)
     runs-on: ubuntu-latest
     defaults:
@@ -49,4 +51,6 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
+      # ESLint: errores de código y de las reglas de React. Va antes del build porque tarda menos.
+      - run: npm run lint
       - run: npm run build
