@@ -58,3 +58,5 @@ Los hallazgos que se vieron al armar el monorepo se confirmaron y ampliaron en l
 - [ ] `docker-compose.yml` en la raíz (MySQL + backend + frontend).
 - [ ] CI con GitHub Actions filtrado por carpeta.
 - [ ] Instalar GitHub CLI (`gh`) para trabajar los PRs desde la terminal.
+- [ ] Escribir los términos y condiciones, y una política de privacidad, antes de usar la app con pacientes reales: la app guarda datos personales y de salud, que en Perú protege la Ley 29733 de Protección de Datos Personales. Hoy `/terms` solo avisa que se están preparando, y el registro pide aceptarlos (CAL-05 en la [revisión inicial](../revisiones/0001-revision-inicial.md)).
+- [ ] Al desplegar, que el servidor que entregue el frontend envíe las cabeceras de seguridad, como `X-Content-Type-Options: nosniff` y `Content-Security-Policy` con `frame-ancestors` contra el clickjacking. En `index.html` no sirven: las metas que había se quitaron con CAL-05.

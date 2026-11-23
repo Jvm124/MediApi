@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ReservarFormInput, ReservarFormData, reservarSchema } from '@/schemas/reservarSchema';
 import { appointmentsApi } from '@/api/appointmentsApi';
@@ -22,13 +22,14 @@ const ReservarCitaPage = () => {
     const {
         register,
         handleSubmit,
-        watch,
+        control,
         formState: { errors, isSubmitting },
         // <Entrada (string), Contexto, Salida (number)>
     } = useForm<ReservarFormInput, unknown, ReservarFormData>({ resolver: zodResolver(reservarSchema) });
 
-    // Cuál médico está marcado ahora mismo (string, tal como lo da el radio).
-    const selectedMedico = watch('idMedico');
+    // Cuál médico está marcado ahora mismo (string, tal como lo da el radio). Se lee con useWatch: el lint
+    // avisa de que watch() de useForm no es compatible con el React Compiler (react-hooks/incompatible-library).
+    const selectedMedico = useWatch({ control, name: 'idMedico' });
 
     useEffect(() => {
         medicosApi

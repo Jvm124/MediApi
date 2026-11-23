@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom';
 import LandingPage from '@/pages/LandingPage';
 import LoginPage from '@/pages/LoginPage';
 import RegisterPage from '@/pages/RegisterPage';
+import TermsPage from '@/pages/TermsPage';
 import DashboardPage from '@/pages/DashboardPage';
 import MedicoDashboardPage from '@/pages/MedicoDashboardPage';
 import AdminDashboardPage from '@/pages/AdminDashboardPage';
@@ -22,6 +23,7 @@ const AppRoutes = () => {
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/terms" element={<TermsPage />} />
             <Route path="/no-autorizado" element={<UnauthorizedPage />} />
 
             {/* Solo PACIENTE */}

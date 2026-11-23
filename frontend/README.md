@@ -1,4 +1,4 @@
-# Healthcare Frontend 🏥
+# Frontend de MediApi 🏥
 
 Sistema de gestión de citas médicas. Frontend desarrollado en React + TypeScript + Vite.
 Aun no esta terminado

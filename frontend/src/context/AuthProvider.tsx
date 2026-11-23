@@ -1,18 +1,8 @@
-import { createContext, useState, useEffect, type ReactNode } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import { authApi } from '@/api/authApi';
 import { tokenStorage } from '@/utils/tokenStorage';
 import type { User, LoginRequest, RegisterRequest } from '@/types/auth.types';
-
-interface AuthContextType {
-    user: User | null;
-    loading: boolean;
-    isAuthenticated: boolean;
-    login: (credentials: LoginRequest) => Promise<User>;
-    register: (data: RegisterRequest) => Promise<User>;
-    logout: () => Promise<void>;
-}
-
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+import { AuthContext } from './AuthContext';
 
 interface AuthProviderProps {
     children: ReactNode;

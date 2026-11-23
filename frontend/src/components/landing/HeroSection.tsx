@@ -7,7 +7,7 @@ const HeroSection = () => {
                         No más colas para poder registrar una cita
                     </h1>
                     <p className="text-lg text-white/90">
-                        En Healthcare podrás agendar tu cita inmediatamente.
+                        En MediApi podrás agendar tu cita inmediatamente.
                     </p>
                 </div>
                 <div className="flex justify-center">

@@ -25,13 +25,4 @@ export const authApi = {
     logout: async (): Promise<void> => {
         return Promise.resolve();
     },
-    reservar: async (data: {
-        idMedico: number;
-        idPaciente: number;
-        fecha: Date;
-
-    }): Promise<void> => {
-        await axiosClient.post('/pacientes', data);
-    },
-
 };

@@ -24,15 +24,17 @@ const MedicoDashboardPage = () => {
     // Cada tarjeta mira esta hora para saber si ya llegó la de su consulta.
     const ahora = useHoraActual();
 
-    const cargar = useCallback(async () => {
-        setError('');
-        try {
-            setCitas(await appointmentsApi.getMedicoAppointments());
-        } catch (err) {
-            setError(getErrorMessage(err, 'No se pudieron cargar tus consultas'));
-        } finally {
-            setLoading(false);
-        }
+    // El estado solo cambia dentro de then, catch y finally, cuando ya llegó la respuesta.
+    // Si cambiara nada más llamar a cargar(), el useEffect lo haría al montarse la página
+    // y React tendría que volver a pintarla enseguida: eso marca react-hooks/set-state-in-effect.
+    const cargar = useCallback(() => {
+        return appointmentsApi.getMedicoAppointments()
+            .then((consultas) => {
+                setCitas(consultas);
+                setError('');
+            })
+            .catch((err) => setError(getErrorMessage(err, 'No se pudieron cargar tus consultas')))
+            .finally(() => setLoading(false));
     }, []);
 
     useEffect(() => {

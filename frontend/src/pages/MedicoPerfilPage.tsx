@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CalendarDays, UserCog } from 'lucide-react';
@@ -29,21 +29,14 @@ const MedicoPerfilPage = () => {
         formState: { errors, isSubmitting },
     } = useForm<PerfilMedicoFormData>({ resolver: zodResolver(perfilMedicoSchema) });
 
-    const cargar = useCallback(async () => {
-        setLoadError('');
-        try {
-            const perfil = await medicosApi.miPerfil();
-            reset({ telefono: perfil.telefono, direccion: perfil.direccion });
-        } catch (err) {
-            setLoadError(getErrorMessage(err, 'No se pudo cargar tu perfil'));
-        } finally {
-            setLoading(false);
-        }
-    }, [reset]);
-
+    // Carga el perfil al abrir la página. El estado solo cambia dentro de then, catch y finally,
+    // cuando ya llegó la respuesta, y no nada más montarse (regla react-hooks/set-state-in-effect).
     useEffect(() => {
-        cargar();
-    }, [cargar]);
+        medicosApi.miPerfil()
+            .then((perfil) => reset({ telefono: perfil.telefono, direccion: perfil.direccion }))
+            .catch((err) => setLoadError(getErrorMessage(err, 'No se pudo cargar tu perfil')))
+            .finally(() => setLoading(false));
+    }, [reset]);
 
     const onSubmit = async (data: PerfilMedicoFormData) => {
         setFormError('');

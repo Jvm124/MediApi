@@ -12,7 +12,6 @@
   "dependencies": {
     "@hookform/resolvers": "^7.0.6",
     "axios": "^1.16.0",
-    "dompurify": "^3.4.2",
     "lucide-react": "^1.72.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
@@ -22,7 +21,6 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@types/dompurify": "^3.2.0",
     "@types/node": "^24.19.2",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",

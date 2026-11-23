@@ -8,10 +8,10 @@ const Navbar = () => {
         <header className="bg-white shadow-sm sticky top-0 z-40">
             <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
                 <Link to="/" className="flex items-center gap-2">
-                    <img src="/assets/logo.png" alt="Healthcare" className="h-10" />
+                    <img src="/assets/logo.png" alt="MediApi" className="h-10" />
                     <div className="leading-tight">
-                        <p className="text-secondary font-bold text-lg">HEALTHCARE</p>
-                        <p className="text-xs text-gray-500">Medical Care</p>
+                        <p className="text-secondary font-bold text-lg">MediApi</p>
+                        <p className="text-xs text-gray-500">Citas médicas</p>
                     </div>
                 </Link>
 
